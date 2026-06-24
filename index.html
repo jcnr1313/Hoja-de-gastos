@@ -3,247 +3,736 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ascensores La Fe - Gestión Técnica</title>
+    <title>Elevia - Control de Gastos Inteligente</title>
     <style>
-        /* Variables de diseño de inspiración minimalista y moderna */
         :root {
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #1a1a1a;
-            --text-muted: #666666;
-            --accent-walnut: #4a3728; /* Tono madera nogal */
-            --accent-dark: #111111;   /* Acentos negros */
-            --border-color: #e5e5e5;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --radius: 8px;
+            --primary: #1e293b;
+            --primary-light: #334155;
+            --accent-walnut: #4a3728; /* Detalle elegante en tono nogal */
+            --accent-dark: #0f172a;   /* Acentos negros pulidos */
+            --bg-app: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --pending: #d97706;
+            --radius: 12px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-app);
             color: var(--text-main);
-            line-height: 1.5;
-            padding: 2rem 1rem;
+            min-height: 100vh;
         }
 
-        .container {
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- PANTALLA DE LOGIN --- */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-logo img {
+            height: 55px;
+            margin-bottom: 24px;
+            object-fit: contain;
+        }
+
+        .login-card h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .login-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        /* --- FORMULARIOS --- */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--primary-light);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: #fff;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-walnut);
+            box-shadow: 0 0 0 3px rgba(74, 55, 40, 0.15);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: var(--accent-dark);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #000000;
+        }
+
+        /* --- CABECERA DE LA APP --- */
+        .app-header {
+            background-color: var(--accent-dark);
+            color: white;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid var(--accent-walnut);
+        }
+
+        .header-container {
             max-width: 1200px;
             margin: 0 auto;
-        }
-
-        header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--accent-dark);
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
+            justify-content: space-between;
         }
 
-        h1 {
-            font-size: 1.75rem;
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .company-logo {
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .app-title h1 {
+            font-size: 18px;
             font-weight: 700;
-            color: var(--accent-dark);
-            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .search-bar {
-            width: 100%;
-            max-width: 400px;
-            position: relative;
+        .app-title p {
+            font-size: 12px;
+            color: #94a3b8;
         }
 
-        .search-bar input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            transition: border-color 0.2s;
+        .header-right-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--accent-walnut);
+        .welcome-msg {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #475569;
+            color: #cbd5e1;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #cbd5e1;
+            color: var(--primary);
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .app-container {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
         }
 
         .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background: var(--bg-card);
             border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             position: relative;
-            overflow: hidden;
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background-color: var(--accent-walnut);
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-
-        .elevator-number {
-            font-size: 1.25rem;
+        .card h2 {
+            font-size: 16px;
             font-weight: 700;
-            color: var(--accent-dark);
-        }
-
-        .rae-number {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-family: monospace;
-        }
-
-        .card-body p {
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
+            color: var(--primary);
+            margin-bottom: 18px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
         }
 
-        .card-body p span:first-child {
-            color: var(--text-muted);
-            font-weight: 500;
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
-        .card-body p span:last-child {
-            color: var(--text-main);
+        /* --- TABLAS --- */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--primary-light);
             font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--border);
         }
 
-        .no-results {
-            grid-column: 1 / -1;
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        table input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px dashed var(--primary-light);
+            color: var(--primary-light);
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-color: #000;
+        }
+
+        /* --- SUBIDA Y CAPTURA DE FOTOS --- */
+        .file-upload-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .photo-label {
+            display: inline-block;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
             text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            background-color: var(--card-bg);
-            border: 1px dashed var(--border-color);
-            border-radius: var(--radius);
+            font-weight: 500;
+            transition: background 0.2s;
         }
 
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            .search-bar {
-                max-width: 100%;
-            }
+        .photo-label:hover {
+            background: #e2e8f0;
+        }
+
+        .photo-input {
+            display: none;
+        }
+
+        .image-preview-container {
+            margin-top: 4px;
+        }
+
+        .img-preview {
+            max-height: 50px;
+            max-width: 90px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            object-fit: cover;
+        }
+
+        /* --- DESGLOSE DE TOTALES --- */
+        .totals-box {
+            max-width: 400px;
+            margin-left: auto;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .total-row.grand-total {
+            font-size: 18px;
+            color: var(--accent-walnut);
+            padding-top: 14px;
+            margin-top: 8px;
+            border-top: 2px solid var(--border);
+        }
+
+        /* --- PANEL ADMIN VISTAZO RÁPIDO --- */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .stat-card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .status-pending { background: #fef3c7; color: #b45309; }
+        .status-approved { background: #dcfce7; color: #15803d; }
+
+        @media print {
+            .no-print, .app-header { display: none !important; }
+            body { background: white; padding: 0; }
+            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Ascensores La Fe</h1>
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Buscar por número, RAE o línea...">
+    <div id="login-screen" class="login-container">
+        <div class="login-card card">
+            <div class="login-logo">
+                <img src="image.png" alt="Logo Empresa">
+            </div>
+            <h2>Control de Acceso</h2>
+            <p>Introduce tus credenciales para continuar</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario / Técnico:</label>
+                    <input type="text" id="username" required placeholder="Tu nombre o 'admin'">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary">Iniciar Sesión</button>
+                <p id="login-error" class="error-text hidden">Credenciales incorrectas.</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-content" class="hidden">
+        
+        <header class="app-header">
+            <div class="header-container">
+                <div class="logo-container">
+                    <img src="image.png" alt="Logo Empresa" class="company-logo">
+                    <div class="app-title">
+                        <h1 id="main-app-title">Control de Gastos</h1>
+                        <p id="user-role-indicator">Plataforma Operativa</p>
+                    </div>
+                </div>
+                <div class="header-right-actions">
+                    <span id="welcome-user" class="welcome-msg">Bienvenido</span>
+                    <button id="btn-logout" class="btn-logout">Cerrar Sesión</button>
+                </div>
             </div>
         </header>
 
-        <main class="grid" id="elevatorGrid">
-            <!-- Los ascensores se cargarán dinámicamente aquí -->
+        <main id="view-tecnico" class="app-container hidden">
+            <section class="card">
+                <h2>Información General</h2>
+                <div class="meta-grid">
+                    <div class="form-group">
+                        <label>Técnico Activo:</label>
+                        <input type="text" id="worker-name-display" readonly style="background:#f1f5f9; font-weight:600;">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Registro:</label>
+                        <input type="date" id="report-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Mes / Período:</label>
+                        <input type="month" id="report-period">
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>1. Combustible / Kilometraje <button type="button" class="btn-secondary" onclick="addRow('table-fuel', 'fuel-total')">+ Añadir Línea</button></h2>
+                <div class="table-responsive">
+                    <table id="table-fuel">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Ruta / Desplazamiento</th>
+                                <th>Km / Litros</th>
+                                <th style="width:150px;">Importe (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="date"></td>
+                                <td><input type="text" placeholder="Ej. Ruta de mantenimientos"></td>
+                                <td><input type="number" step="0.01"></td>
+                                <td><input type="number" step="0.01" class="amount-input fuel-total"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>2. Materiales y Suministros <button type="button" class="btn-secondary" onclick="addRow('table-materials', 'materials-total')">+ Añadir Línea</button></h2>
+                <div class="table-responsive">
+                    <table id="table-materials">
+                        <thead>
+                            <tr>
+                                <th>Nº Albarán</th>
+                                <th>Descripción de Material</th>
+                                <th>Proveedor</th>
+                                <th style="width:150px;">Importe (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" placeholder="Nº"></td>
+                                <td><input type="text" placeholder="Materiales utilizados"></td>
+                                <td><input type="text" placeholder="Proveedor"></td>
+                                <td><input type="number" step="0.01" class="amount-input materials-total"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>3. Medias Dietas / Comidas <button type="button" class="btn-secondary" onclick="addRowWithPhoto('table-dietas', 'dietas-total')">+ Añadir Dieta</button></h2>
+                <div class="table-responsive">
+                    <table id="table-dietas">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Establecimiento / Detalle</th>
+                                <th style="width:220px;">Ticket / Captura</th>
+                                <th style="width:150px;">Importe (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="date"></td>
+                                <td><input type="text" placeholder="Ej. Almuerzo / Media dieta diaria"></td>
+                                <td>
+                                    <div class="file-upload-wrapper">
+                                        <label class="photo-label" onclick="this.nextElementSibling.click()">📷 Capturar Ticket</label>
+                                        <input type="file" accept="image/*" class="photo-input" onchange="previewImage(this)">
+                                        <div class="image-preview-container hidden">
+                                            <img src="" class="img-preview" alt="Ticket">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><input type="number" step="0.01" class="amount-input dietas-total"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>4. Parking, Peajes y Varios <button type="button" class="btn-secondary" onclick="addRow('table-parking', 'parking-total')">+ Añadir Línea</button></h2>
+                <div class="table-responsive">
+                    <table id="table-parking">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto / Ubicación</th>
+                                <th>Ticket Nº</th>
+                                <th style="width:150px;">Importe (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="date"></td>
+                                <td><input type="text" placeholder="Ubicación parking"></td>
+                                <td><input type="text" placeholder="Nº"></td>
+                                <td><input type="number" step="0.01" class="amount-input parking-total"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>Resumen Desglosado Mensual</h2>
+                <div class="totals-box">
+                    <div class="total-row"><span>Total Combustible:</span><span id="subtotal-fuel" style="font-weight:600;">0.00 €</span></div>
+                    <div class="total-row"><span>Total Materiales:</span><span id="subtotal-materials" style="font-weight:600;">0.00 €</span></div>
+                    <div class="total-row"><span>Total Medias Dietas:</span><span id="subtotal-dietas" style="font-weight:600;">0.00 €</span></div>
+                    <div class="total-row"><span>Total Parking / Varios:</span><span id="subtotal-parking" style="font-weight:600;">0.00 €</span></div>
+                    <div class="total-row grand-total">
+                        <strong>TOTAL A REEMBOLSAR:</strong>
+                        <strong id="grand-total">0.00 €</strong>
+                    </div>
+                </div>
+            </section>
+
+            <div class="no-print" style="text-align:right;">
+                <button onclick="window.print()" class="btn-primary" style="width:auto; padding:12px 30px;">Imprimir / Guardar PDF</button>
+            </div>
+        </main>
+
+        <main id="view-admin" class="app-container hidden">
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Gastos Globales (Mes)</h3>
+                    <div class="stat-number" style="color:var(--accent-dark)">1,140.70 €</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Hojas Recibidas</h3>
+                    <div class="stat-number">3</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Revisiones Pendientes</h3>
+                    <div class="stat-number" style="color:var(--pending)">2</div>
+                </div>
+            </div>
+
+            <section class="card">
+                <h2>Desglose de Gastos por Técnico de un Vistazo</h2>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Técnico</th>
+                                <th>Combustible</th>
+                                <th>Materiales</th>
+                                <th>Medias Dietas</th>
+                                <th>Parking/Otros</th>
+                                <th style="font-weight:700; background:#f1f5f9;">Total Neto</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight:600;">Juan Carlos</td>
+                                <td>150.00 €</td>
+                                <td>45.20 €</td>
+                                <td>120.00 €</td>
+                                <td>12.50 €</td>
+                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">327.70 €</td>
+                                <td><span class="status-badge status-pending">Pendiente</span></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:600;">Carlos Mendoza</td>
+                                <td>280.00 €</td>
+                                <td>110.50 €</td>
+                                <td>90.00 €</td>
+                                <td>5.00 €</td>
+                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">486.00 €</td>
+                                <td><span class="status-badge status-approved">Validado</span></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:600;">Javier Ortiz</td>
+                                <td>95.00 €</td>
+                                <td>0.00 €</td>
+                                <td>210.00 €</td>
+                                <td>22.00 €</td>
+                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">327.00 €</td>
+                                <td><span class="status-badge status-pending">Pendiente</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
     <script>
-        // Datos técnicos de los ascensores instalados en el Hospital La Fe
-        const elevatorData = [
-            { id: "51", rae: "RAE-00051", linea: "961 234 501", especificaciones: "Montacamillas - Principal" },
-            { id: "52", rae: "RAE-00052", linea: "961 234 502", especificaciones: "Montacamillas - Servicio" },
-            { id: "53", rae: "RAE-00053", linea: "961 234 503", especificaciones: "Público - Bloque A" },
-            { id: "54", rae: "RAE-00054", linea: "961 234 504", especificaciones: "Público - Bloque B" },
-            { id: "55", rae: "RAE-00055", linea: "961 234 505", especificaciones: "Personal - Urgencias" }
-        ];
-
-        const elevatorGrid = document.getElementById('elevatorGrid');
-        const searchInput = document.getElementById('searchInput');
-
-        // Función para renderizar las tarjetas en la pantalla
-        function renderElevators(data) {
-            elevatorGrid.innerHTML = '';
-            
-            if (data.length === 0) {
-                elevatorGrid.innerHTML = '<div class="no-results">No se encontraron ascensores que coincidan con la búsqueda.</div>';
-                return;
+        function addRow(tableId, inputClass) {
+            const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            const newRow = table.rows[0].cloneNode(true);
+            const inputs = newRow.getElementsByTagName('input');
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = '';
             }
+            table.appendChild(newRow);
+            bindEvents();
+        }
 
-            data.forEach(elevator => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="elevator-number">Ascensor ${elevator.id}</span>
-                        <span class="rae-number">${elevator.rae}</span>
-                    </div>
-                    <div class="card-body">
-                        <p><span>Línea Tlf:</span> <span>${elevator.linea}</span></p>
-                        <p><span>Tipo/Ubicación:</span> <span>${elevator.especificaciones}</span></p>
-                    </div>
-                `;
-                elevatorGrid.appendChild(card);
+        function addRowWithPhoto(tableId, inputClass) {
+            const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+            const newRow = table.rows[0].cloneNode(true);
+            const inputs = newRow.getElementsByTagName('input');
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = '';
+            }
+            const preview = newRow.querySelector('.image-preview-container');
+            if(preview) preview.classList.add('hidden');
+            table.appendChild(newRow);
+            bindEvents();
+        }
+
+        function previewImage(input) {
+            const previewContainer = input.nextElementSibling;
+            const previewImg = previewContainer.querySelector('.img-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function calculateTotals() {
+            let totalFuel = 0, totalMaterials = 0, totalDietas = 0, totalParking = 0;
+
+            document.querySelectorAll('.fuel-total').forEach(i => totalFuel += parseFloat(i.value) || 0);
+            document.querySelectorAll('.materials-total').forEach(i => totalMaterials += parseFloat(i.value) || 0);
+            document.querySelectorAll('.dietas-total').forEach(i => totalDietas += parseFloat(i.value) || 0);
+            document.querySelectorAll('.parking-total').forEach(i => totalParking += parseFloat(i.value) || 0);
+
+            document.getElementById('subtotal-fuel').innerText = totalFuel.toFixed(2) + ' €';
+            document.getElementById('subtotal-materials').innerText = totalMaterials.toFixed(2) + ' €';
+            document.getElementById('subtotal-dietas').innerText = totalDietas.toFixed(2) + ' €';
+            document.getElementById('subtotal-parking').innerText = totalParking.toFixed(2) + ' €';
+
+            const total = totalFuel + totalMaterials + totalDietas + totalParking;
+            document.getElementById('grand-total').innerText = total.toFixed(2) + ' €';
+        }
+
+        function bindEvents() {
+            document.querySelectorAll('.amount-input').forEach(input => {
+                input.removeEventListener('input', calculateTotals);
+                input.addEventListener('input', calculateTotals);
             });
         }
 
-        // Función de filtrado en tiempo real
-        function filterElevators() {
-            const query = searchInput.value.toLowerCase().trim();
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
             
-            const filtered = elevatorData.filter(elevator => {
-                return elevator.id.toLowerCase().includes(query) || 
-                       elevator.rae.toLowerCase().includes(query) || 
-                       elevator.linea.toLowerCase().includes(query) ||
-                       elevator.especificaciones.toLowerCase().includes(query);
-            });
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
             
-            renderElevators(filtered);
-        }
-
-        // Event listener para la barra de búsqueda
-        searchInput.addEventListener('input', filterElevators);
-
-        // Renderizado inicial al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            renderElevators(elevatorData);
+            // Mensaje de bienvenida con nombre propio
+            document.getElementById('welcome-user').innerText = `Hola, ${user} 👋`;
+            
+            if(user.toLowerCase() === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('view-tecnico').classList.add('hidden');
+                document.getElementById('main-app-title').innerText = "Panel Admin";
+                document.getElementById('user-role-indicator').innerText = "Resumen Corporativo";
+            } else {
+                document.getElementById('view-tecnico').classList.remove('hidden');
+                document.getElementById('view-admin').classList.add('hidden');
+                document.getElementById('worker-name-display').value = user;
+                document.getElementById('main-app-title').innerText = "Control de Gastos";
+                document.getElementById('user-role-indicator').innerText = "Portal Técnico Móvil";
+            }
         });
+
+        document.getElementById('btn-logout').addEventListener('click', function() {
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        window.onload = function() {
+            bindEvents();
+            document.getElementById('report-date').valueAsDate = new Date();
+        };
     </script>
 </body>
 </html>
