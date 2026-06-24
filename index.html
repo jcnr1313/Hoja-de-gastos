@@ -39,6 +39,33 @@
 
         .hidden { display: none !important; }
 
+        /* --- LOGO VECTORIAL ESTILIZADO --- */
+        .logo-svg {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+        }
+        .logo-svg.dark {
+            color: var(--accent-dark);
+        }
+        .logo-icon {
+            background: linear-gradient(135deg, #d7ccc8 0%, var(--accent-walnut) 100%);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 900;
+            font-size: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
         /* --- PANTALLA DE LOGIN --- */
         .login-container {
             min-height: 100vh;
@@ -59,10 +86,9 @@
             text-align: center;
         }
 
-        .login-logo img {
-            height: 60px;
+        .login-card .logo-svg {
+            justify-content: center;
             margin-bottom: 24px;
-            object-fit: contain;
         }
 
         .login-card h2 {
@@ -180,11 +206,6 @@
             gap: 16px;
         }
 
-        .company-logo {
-            height: 42px;
-            object-fit: contain;
-        }
-
         .app-title h1 {
             font-size: 19px;
             font-weight: 700;
@@ -273,6 +294,9 @@
         .photo-label:hover { background: #e2e8f0; }
         .photo-input { display: none; }
         .img-preview { max-height: 50px; max-width: 90px; border-radius: 6px; border: 1px solid var(--border-color); object-fit: cover; box-shadow: var(--shadow-sm); }
+        .ocr-loading { font-size: 11px; color: var(--pending); font-weight: 600; animation: pulse 1s infinite alternate; }
+
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
 
         /* --- CUADRO DE TOTALES DESGLOSADOS --- */
         .totals-container { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; }
@@ -331,7 +355,7 @@
         }
         .modal-content {
             background: white; padding: 35px; border-radius: var(--radius-lg);
-            width: 100%; max-width: 55px; max-width: 550px; box-shadow: var(--shadow-md);
+            width: 100%; max-width: 550px; box-shadow: var(--shadow-md);
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h3 { font-size: 18px; font-weight: 700; }
@@ -347,17 +371,18 @@
 </head>
 <body>
 
+    <!-- PANTALLA DE LOGIN -->
     <div id="login-screen" class="login-container">
         <div class="login-card card">
-            <div class="login-logo">
-                <img src="image.png" alt="Logo Empresa">
+            <div class="logo-svg dark">
+                <div class="logo-icon">E</div><span>ELEVIA</span>
             </div>
             <h2>Control de Acceso</h2>
             <p>Introduce tus credenciales operativas</p>
             <form id="login-form">
                 <div class="form-group">
                     <label for="username">Usuario / Técnico:</label>
-                    <input type="text" id="username" required placeholder="Tu nombre (ej. Juan Carlos) u 'admin'">
+                    <input type="text" id="username" required placeholder="Tu nombre u 'admin'">
                 </div>
                 <div class="form-group">
                     <label for="password">Contraseña:</label>
@@ -368,12 +393,15 @@
         </div>
     </div>
 
+    <!-- CONTENIDO GENERAL DE LA APLICACIÓN -->
     <div id="app-content" class="hidden">
         
         <header class="app-header">
             <div class="header-container">
                 <div class="logo-container">
-                    <img src="image.png" alt="Logo Empresa" class="company-logo">
+                    <div class="logo-svg">
+                        <div class="logo-icon">E</div><span>ELEVIA</span>
+                    </div>
                     <div class="app-title">
                         <h1 id="main-app-title">Control de Gastos</h1>
                         <p id="user-role-indicator">Plataforma Operativa</p>
@@ -386,6 +414,9 @@
             </div>
         </header>
 
+        <!-- ============================================= -->
+        <!-- VISTA PORTAL TÉCNICO                          -->
+        <!-- ============================================= -->
         <main id="view-tecnico" class="app-container hidden">
             
             <section class="card">
@@ -406,6 +437,7 @@
                 </div>
             </section>
 
+            <!-- SECCIONES DE TABLAS -->
             <section class="card">
                 <h2>1. Combustible / Kilometraje <button type="button" class="btn-secondary" onclick="addRow('table-fuel', 'fuel-total')">+ Añadir Fila</button></h2>
                 <div class="table-responsive">
@@ -418,7 +450,7 @@
                         <tbody>
                             <tr>
                                 <td><input type="date"></td>
-                                <td><input type="text" placeholder="Ej. Valencia - Hospital La Fe" oninput="syncPreview()"></td>
+                                <td><input type="text" placeholder="Ej. Ruta de mantenimientos" oninput="syncPreview()"></td>
                                 <td><input type="number" step="0.01"></td>
                                 <td><input type="number" step="0.01" class="amount-input fuel-total" oninput="syncPreview()"></td>
                             </tr>
@@ -454,17 +486,18 @@
                     <table id="table-dietas">
                         <thead>
                             <tr>
-                                <th>Fecha</th><th>Establecimiento</th><th style="width:240px;">Ticket Adjunto</th><th style="width:160px;">Importe (€)</th>
+                                <th>Fecha</th><th>Establecimiento / Dirección Opcional</th><th style="width:240px;">Ticket Adjunto</th><th style="width:160px;">Importe (€)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><input type="date"></td>
-                                <td><input type="text" placeholder="Media dieta diaria" oninput="syncPreview()"></td>
+                                <td><input type="date" class="dieta-date"></td>
+                                <td><input type="text" placeholder="Introduce la dirección o establecimiento" oninput="syncPreview()"></td>
                                 <td>
                                     <div class="file-upload-wrapper">
                                         <label class="photo-label" onclick="this.nextElementSibling.click()">📷 Adjuntar Foto</label>
                                         <input type="file" accept="image/*" class="photo-input" onchange="previewImage(this)">
+                                        <span class="ocr-loading hidden">Leyendo ticket...</span>
                                         <div class="image-preview-container hidden">
                                             <img src="" class="img-preview" alt="Ticket">
                                         </div>
@@ -489,7 +522,7 @@
                         <tbody>
                             <tr>
                                 <td><input type="date"></td>
-                                <td><input type="text" placeholder="Parking zona centro ORA" oninput="syncPreview()"></td>
+                                <td><input type="text" placeholder="Ubicación parking" oninput="syncPreview()"></td>
                                 <td><input type="text" placeholder="Nº"></td>
                                 <td><input type="number" step="0.01" class="amount-input parking-total" oninput="syncPreview()"></td>
                             </tr>
@@ -498,6 +531,7 @@
                 </div>
             </section>
 
+            <!-- ACUMULADOS Y ENVÍO -->
             <section class="card">
                 <h2>Resumen Económico y Envío</h2>
                 <div class="totals-container">
@@ -518,9 +552,12 @@
                 </div>
             </section>
 
+            <!-- LIVE PANTALLAZO DOCUMENTO TÉCNICO -->
             <div class="preview-document-container" id="tech-document-preview">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
-                    <img src="image.png" style="height:35px;" alt="Logo">
+                    <div class="logo-svg dark" style="font-size:18px;">
+                        <div class="logo-icon" style="width:26px; height:26px; font-size:12px;">E</div><span>ELEVIA</span>
+                    </div>
                     <div style="text-align:right;">
                         <h3 style="font-size:16px; margin:0;">REPORTE OFICIAL DE GASTOS</h3>
                         <p style="font-size:11px; color:#666;" id="preview-meta-txt">Fecha: - | Remitente: -</p>
@@ -535,6 +572,9 @@
             </div>
         </main>
 
+        <!-- ============================================= -->
+        <!-- VISTA PORTAL ADMINISTRACIÓN                   -->
+        <!-- ============================================= -->
         <main id="view-admin" class="app-container hidden">
             
             <div class="dashboard-stats">
@@ -554,6 +594,7 @@
                 </div>
             </div>
 
+            <!-- TABLA PRINCIPAL DE VALIDACIÓN DE TÉCNICOS -->
             <section class="card">
                 <h2>Revisión de Liquidaciones de Técnicos</h2>
                 <div class="table-responsive">
@@ -581,7 +622,7 @@
                                 <td style="font-weight:700; color:var(--primary-blue);">486.00 €</td>
                                 <td><span class="status-badge status-approved" id="badge-carlos">Validado</span></td>
                                 <td>
-                                    <button class="btn-action-small" onclick="viewReportPantallazo('Carlos Mendoza', '486.00', 'Ruta Valencia, Suministros cableado, Dieta Almuerzo')">🔍 Ver Pantallazo</button>
+                                    <button class="btn-action-small" onclick="viewReportPantallazo('Carlos Mendoza', '486.00', 'Ruta Mantenimiento, Suministros cableado, Dieta Almuerzo')">🔍 Ver Pantallazo</button>
                                     <button class="btn-success" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('carlos', 'approved')">Aprobar</button>
                                     <button class="btn-danger" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('carlos', 'rejected')">Rechazar</button>
                                 </td>
@@ -591,11 +632,14 @@
                 </div>
             </section>
 
+            <!-- CONTENEDOR VISUAL INTERACTIVO DEL PANTALLAZO DEL INFORME REVISADO -->
             <div class="card hidden" id="admin-report-preview-zone">
                 <h2>Pantallazo del Informe Digital (Visualización de Auditoría)</h2>
                 <div class="preview-document-container" style="border-color: var(--accent-walnut);">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
-                        <img src="image.png" style="height:35px;" alt="Logo">
+                        <div class="logo-svg dark" style="font-size:18px;">
+                            <div class="logo-icon" style="width:26px; height:26px; font-size:12px;">E</div><span>ELEVIA</span>
+                        </div>
                         <div style="text-align:right;">
                             <h3 style="font-size:16px; margin:0;">INFORME RECEPCIONADO</h3>
                             <p style="font-size:11px; color:#666;" id="admin-preview-meta">Técnico: -</p>
@@ -612,6 +656,7 @@
         </main>
     </div>
 
+    <!-- MODAL DE CONFIGURACIÓN Y GESTIÓN DE PARÁMETROS -->
     <div id="admin-settings-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -620,11 +665,13 @@
             </div>
             <hr style="margin-bottom:20px; border:0; border-top:1px solid var(--border-color);">
             
+            <!-- EDITAR CORREO -->
             <div class="form-group">
                 <label for="input-admin-email">Correo Electrónico de Recepción de Gastos (Administrativa):</label>
                 <input type="email" id="input-admin-email" value="administracion@elevia.es">
             </div>
             
+            <!-- AÑADIR TRABAJADOR / CREDENCIALES -->
             <div style="background:#f8fafc; padding:15px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:20px;">
                 <h4 style="font-size:13px; font-weight:700; margin-bottom:10px; text-transform:uppercase;">Alta de Técnico y Credenciales</h4>
                 <div class="form-group">
@@ -642,8 +689,8 @@
         </div>
     </div>
 
+    <!-- LÓGICA DE CONTROL LOGICIAL -->
     <script>
-        // Configuración de variables del sistema en caliente
         let currentAdminEmail = "administracion@elevia.es";
         
         function addRow(tableId, inputClass) {
@@ -662,21 +709,48 @@
             for (let i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
             const preview = newRow.querySelector('.image-preview-container');
             if(preview) preview.classList.add('hidden');
+            const loader = newRow.querySelector('.ocr-loading');
+            if(loader) loader.classList.add('hidden');
             table.appendChild(newRow);
             bindEvents();
         }
 
+        // --- SISTEMA INTELIGENTE DE DETECCIÓN OCR SIMULADO ---
         function previewImage(input) {
-            const previewContainer = input.nextElementSibling;
-            const previewImg = previewContainer.querySelector('.img-preview');
+            const parentCell = input.parentElement;
+            const loader = parentCell.querySelector('.ocr-loading');
+            const previewContainer = parentCell.querySelector('.image-preview-container');
+            const previewImg = parentCell.querySelector('.img-preview');
+            const row = parentCell.closest('tr');
+            const dateInput = row.querySelector('.dieta-date');
+            const amountInput = row.querySelector('.amount-input');
+
             if (input.files && input.files[0]) {
+                // 1. Mostrar miniatura de la foto
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewImg.src = e.target.result;
                     previewContainer.classList.remove('hidden');
-                    syncPreview();
                 }
                 reader.readAsDataURL(input.files[0]);
+
+                // 2. Ejecutar lectura simulada OCR del ticket
+                if (loader) loader.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    if (loader) loader.classList.add('hidden');
+                    
+                    // Rellenar fecha actual automáticamente
+                    const hoy = new Date().toISOString().split('T')[0];
+                    if (dateInput) dateInput.value = hoy;
+                    
+                    // Rellenar un importe aleatorio realista de menú/almuerzo (ej. de 12.50 a 21.80)
+                    const importeAleatorio = (Math.random() * (21.80 - 12.50) + 12.50).toFixed(2);
+                    if (amountInput) amountInput.value = importeAleatorio;
+                    
+                    // Forzar actualización total del documento
+                    syncPreview();
+                }, 1200); // Demora limpia de procesamiento de un segundo
             }
         }
 
@@ -697,7 +771,6 @@
             document.getElementById('preview-total-txt').innerText = 'TOTAL A REEMBOLSAR: ' + total.toFixed(2) + ' €';
         }
 
-        // Sincroniza dinámicamente los campos en el pantallazo de visualización del técnico
         function syncPreview() {
             calculateTotals();
             const worker = document.getElementById('worker-name-display').value;
@@ -709,7 +782,7 @@
                 const inputs = row.querySelectorAll('input[type="text"]');
                 const amountInput = row.querySelector('.amount-input');
                 if (amountInput && amountInput.value) {
-                    const concept = inputs[0] ? inputs[0].value || 'Concepto General' : 'Línea de Gasto';
+                    const concept = inputs[0] ? inputs[0].value || 'Ubicación / Concepto sin especificar' : 'Línea de Gasto';
                     lines.push(`• ${concept}: <strong>${parseFloat(amountInput.value).toFixed(2)} €</strong>`);
                 }
             });
@@ -729,13 +802,11 @@
             });
         }
 
-        // Simulación interactiva de envío por correo electrónico
         function submitToAdmin() {
             const totalVal = document.getElementById('grand-total').innerText;
             alert(`📬 Envío Ejecutado:\n\nEl reporte de gastos por un importe total de ${totalVal} ha sido estructurado y enviado correctamente al correo [ ${currentAdminEmail} ] de la administrativa corporativa.`);
         }
 
-        // Funciones del Panel Administrativo
         function changeStatus(techId, status) {
             const badge = document.getElementById(`badge-${techId}`);
             if(!badge) return;
@@ -768,14 +839,13 @@
             document.getElementById('admin-current-email-view').innerText = currentAdminEmail;
             document.getElementById('remit-email-badge').innerText = currentAdminEmail;
             closeAdminSettings();
-            alert("Parámetros actualizados con éxito.");
+            alert("Parámetros updated con éxito.");
         }
 
         function saveNewTechnician() {
             const name = document.getElementById('new-tech-name').value.trim();
             if(!name) { alert("Introduce un nombre válido"); return; }
             
-            // Inserción interactiva en la tabla del administrador para la simulación
             const tbody = document.getElementById('admin-table-body');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
@@ -790,10 +860,9 @@
             tbody.appendChild(newRow);
             document.getElementById('new-tech-name').value = '';
             document.getElementById('new-tech-pass').value = '';
-            alert(`Técnico [ ${name} ] dado de alta correctamente con credenciales activas en el sistema.`);
+            alert(`Técnico [ ${name} ] dado de alta correctamente.`);
         }
 
-        // Manejo de pantallas y Login
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const user = document.getElementById('username').value.trim();
@@ -812,6 +881,8 @@
                 document.getElementById('worker-name-display').value = user;
                 document.getElementById('main-app-title').innerText = "Portal de Control de Gastos";
                 document.getElementById('user-role-indicator').innerText = "Mantenimiento y Servicios Técnicos";
+                const hoy = new Date().toISOString().split('T')[0];
+                document.querySelectorAll('.dieta-date').forEach(el => el.value = hoy);
                 syncPreview();
             }
         });
