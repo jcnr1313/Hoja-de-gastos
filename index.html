@@ -3,397 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        body { background-color: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .app-card { background: #ffffff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: none; }
-        .btn-custom { border-radius: 10px; padding: 12px; font-weight: 600; }
-        .hidden-section { display: none; }
-        .preview-image { max-width: 100%; border-radius: 8px; display: none; margin-top: 10px; border: 2px dashed #ccc; }
-        .loading-spinner { display: none; }
-    </style>
+    <title>Ascensores La Fe - Gestión Técnica</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="image.png">
 </head>
 <body>
 
-<div class="container py-4" style="max-width: 500px;">
-
-    <div id="login-section" class="card app-card p-4 text-center">
-        <i class="bi bi-wallet2 text-primary" style="font-size: 3rem;"></i>
-        <h3 class="mt-3 mb-4 fw-bold">Gestión de Gastos</h3>
-        <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="login-user" placeholder="Usuario">
-            <label for="login-user">Usuario</label>
+    <div id="login-screen" class="login-container">
+        <div class="login-card card">
+            <div class="login-logo">
+                <img src="image.png" alt="Logo Elevia" class="company-logo-login">
+            </div>
+            <h2>Control de Acceso</h2>
+            <p>Introduce tus credenciales para acceder al sistema técnico.</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario:</label>
+                    <input type="text" id="username" required placeholder="Tu usuario">
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary btn-block">Iniciar Sesión</button>
+                <p id="login-error" class="error-text hidden">Usuario o contraseña incorrectos.</p>
+            </form>
         </div>
-        <div class="form-floating mb-4">
-            <input type="password" class="form-control" id="login-pass" placeholder="Contraseña">
-            <label for="login-pass">Contraseña</label>
-        </div>
-        <button class="btn btn-primary btn-custom w-100" onclick="procesarLogin()">Iniciar Sesión</button>
-        <div class="text-muted mt-3" style="font-size: 0.85rem;">Admin por defecto: admin / admin123</div>
     </div>
 
-    <div id="tecnico-section" class="hidden-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <span class="text-muted small">Bienvenido,</span>
-                <h5 class="fw-bold m-0" id="nombre-tecnico-activo">Técnico</h5>
+    <div id="app-content" class="hidden">
+        
+        <header class="app-header">
+            <div class="header-container">
+                <div class="logo-container">
+                    <img src="image.png" alt="Logo Elevia" class="company-logo">
+                </div>
+                <div class="app-title">
+                    <h1>Ascensores La Fe</h1>
+                    <p>Panel de Control y Mantenimiento Técnico</p>
+                </div>
+                <div class="logout-container">
+                    <button id="btn-logout" class="btn-danger-outline">Cerrar Sesión</button>
+                </div>
             </div>
-            <button class="btn btn-outline-danger btn-sm" onclick="cerrarSesion()"><i class="bi bi-box-arrow-right"></i></button>
-        </div>
+        </header>
 
-        <button id="btn-ir-admin" class="btn btn-warning btn-custom w-100 mb-3 hidden-section" onclick="mostrarAdminSection()">
-            <i class="bi bi-shield-lock-fill me-2"></i>Panel Maestro Administración
-        </button>
-
-        <div class="card app-card p-4">
-            <h4 class="fw-bold mb-3 text-secondary">Registrar Gasto</h4>
+        <main class="app-container">
             
-            <label class="form-label fw-bold">Tipo de Gasto</label>
-            <div class="row g-2 mb-3">
-                <div class="col-4">
-                    <input type="radio" class="btn-check" name="tipoGasto" id="gasto-carburante" value="Carburante" checked>
-                    <label class="btn btn-outline-primary w-100 py-3" for="gasto-carburante"><i class="bi bi-fuel-pump d-block mb-1 fs-4"></i>Gasolina</label>
+            <section class="search-section card">
+                <h2>Buscar Ascensor</h2>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Introduce Nº de ascensor, RAE o teléfono...">
+                    <button id="btn-search" class="btn-primary">Buscar</button>
                 </div>
-                <div class="col-4">
-                    <input type="radio" class="btn-check" name="tipoGasto" id="gasto-materiales" value="Materiales">
-                    <label class="btn btn-outline-primary w-100 py-3" for="gasto-materiales"><i class="bi bi-box-seam d-block mb-1 fs-4"></i>Material</label>
-                </div>
-                <div class="col-4">
-                    <input type="radio" class="btn-check" name="tipoGasto" id="gasto-parking" value="Parking">
-                    <label class="btn btn-outline-primary w-100 py-3" for="gasto-parking"><i class="bi bi-p-circle d-block mb-1 fs-4"></i>Parking</label>
-                </div>
-            </div>
+            </section>
 
-            <div class="mb-3 p-3 bg-light rounded-3 text-center border">
-                <label class="form-label fw-bold d-block mb-2"><i class="bi bi-camera-fill me-2"></i>Foto del Ticket / Factura</label>
-                <input type="file" id="ticket-file" accept="image/*" capture="environment" class="form-control" onchange="procesarTicket(event)">
-                <img id="ticket-preview" class="preview-image" alt="Vista previa">
+            <section class="data-section card">
+                <div class="section-header">
+                    <h2>Unidades Registradas</h2>
+                    <button id="btn-add-elevator" class="btn-secondary">+ Añadir Unidad</button>
+                </div>
                 
-                <div id="ocr-loading" class="loading-spinner mt-3 text-primary">
-                    <div class="spinner-border spinner-border-sm" role="status"></div>
-                    <span class="ms-2 small fw-bold">Escaneando importes y fechas automáticamente...</span>
+                <div class="table-responsive">
+                    <table id="elevators-table">
+                        <thead>
+                            <tr>
+                                <th>Nº ID</th>
+                                <th>Nº RAE</th>
+                                <th>Línea Teléfono</th>
+                                <th>Código IMEI</th>
+                                <th>Próxima OCA</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="elevators-list">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div id="elevator-modal" class="modal hidden">
+                <div class="modal-content card">
+                    <span class="close-modal">&times;</span>
+                    <h2 id="modal-title">Detalles del Ascensor</h2>
+                    <form id="elevator-form">
+                        <input type="hidden" id="modal-action-type" value="edit">
+                        <div class="form-group">
+                            <label for="elevator-id">Número de Ascensor:</label>
+                            <input type="number" id="elevator-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="elevator-rae">Número RAE:</label>
+                            <input type="text" id="elevator-rae" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="elevator-phone">Línea Telefónica:</label>
+                            <input type="tel" id="elevator-phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="elevator-imei">Código IMEI:</label>
+                            <input type="text" id="elevator-imei">
+                        </div>
+                        <div class="form-group">
+                            <label for="elevator-oca">Fecha Próxima OCA:</label>
+                            <input type="date" id="elevator-oca">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Guardar Cambios</button>
+                            <button type="button" id="btn-cancel" class="btn-danger">Cancelar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="row g-2">
-                <div class="col-6 mb-3">
-                    <label class="form-label small fw-bold">Importe (€)</label>
-                    <input type="number" step="0.01" class="form-control form-control-lg" id="gasto-importe" placeholder="0.00">
-                </div>
-                <div class="col-6 mb-3">
-                    <label class="form-label small fw-bold">Fecha</label>
-                    <input type="date" class="form-control form-control-lg" id="gasto-fecha">
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold">Dirección / Centro de Trabajo</label>
-                <input type="text" class="form-control" id="gasto-direccion" placeholder="Ej: Hospital La Fe / Calle San Roque">
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label small fw-bold">Observaciones (Opcional)</label>
-                <textarea class="form-control" id="gasto-observaciones" rows="2" placeholder="Detalles adicionales del aviso o reparación..."></textarea>
-            </div>
-
-            <button class="btn btn-success btn-custom w-100 btn-lg" onclick="generarYEnviarGasto()">
-                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Generar y Enviar a Secretaria
-            </button>
-        </div>
+        </main>
     </div>
 
-    <div id="admin-section" class="hidden-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0 text-dark"><i class="bi bi-gear-fill me-2 text-warning"></i>Panel Maestro</h4>
-            <button class="btn btn-secondary btn-sm" onclick="regresarAlFormulario()"><i class="bi bi-arrow-left-short"></i> Volver</button>
-        </div>
-
-        <div class="card app-card p-3 mb-3">
-            <h6 class="fw-bold text-primary mb-2"><i class="bi bi-envelope-at-fill me-2"></i>Correo de la Secretaria</h6>
-            <div class="input-group">
-                <input type="email" id="config-correo-secretaria" class="form-control" placeholder="secretaria@empresa.com">
-                <button class="btn btn-primary" onclick="guardarCorreoSecretaria()">Guardar</button>
-            </div>
-        </div>
-
-        <div class="card app-card p-3">
-            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-people-fill me-2"></i>Gestión de Técnicos</h6>
-            
-            <div class="bg-light p-2 rounded mb-3 border">
-                <span class="small fw-bold text-muted d-block mb-2">Añadir Nuevo Técnico</span>
-                <div class="row g-2">
-                    <div class="col-5">
-                        <input type="text" id="nuevo-user-name" class="form-control form-control-sm" placeholder="Usuario">
-                    </div>
-                    <div class="col-5">
-                        <input type="text" id="nuevo-user-pass" class="form-control form-control-sm" placeholder="Contraseña">
-                    </div>
-                    <div class="col-2">
-                        <button class="btn btn-success btn-sm w-100" onclick="agregarUsuario()"><i class="bi bi-plus-lg"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <span class="small fw-bold text-muted d-block mb-1">Listado de Usuarios</span>
-            <ul class="list-group" id="lista-usuarios-ui">
-                </ul>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    // Inicialización de base de datos local persistente en el navegador
-    if (!localStorage.getItem('app_config')) {
-        const datosIniciales = {
-            correoSecretaria: 'secretaria@empresa.com',
-            usuarios: [
-                { user: 'admin', pass: 'admin123', rol: 'admin', nombre: 'Administrador Maestro' },
-                { user: 'juan', pass: '1234', rol: 'tecnico', nombre: 'Juan Carlos' },
-                { user: 'tecnico2', pass: '5678', rol: 'tecnico', nombre: 'Carlos Gómez' }
-            ]
-        };
-        localStorage.setItem('app_config', JSON.stringify(datosIniciales));
-    }
-
-    let sesionActiva = null;
-    let imagenBase64Ticket = null;
-
-    function procesarLogin() {
-        const userIn = document.getElementById('login-user').value.trim();
-        const passIn = document.getElementById('login-pass').value.trim();
-        const config = JSON.parse(localStorage.getItem('app_config'));
-
-        const usuarioEncontrado = config.usuarios.find(u => u.user === userIn && u.pass === passIn);
-
-        if (usuarioEncontrado) {
-            sesionActiva = usuarioEncontrado;
-            document.getElementById('login-section').classList.add('hidden-section');
-            document.getElementById('tecnico-section').classList.remove('hidden-section');
-            document.getElementById('nombre-tecnico-activos')?.setHTML ? document.getElementById('nombre-tecnico-activo').setHTML(sesionActiva.nombre) : document.getElementById('nombre-tecnico-activo').innerText = sesionActiva.nombre;
-
-            if (sesionActiva.rol === 'admin') {
-                document.getElementById('btn-ir-admin').classList.remove('hidden-section');
-            } else {
-                document.getElementById('btn-ir-admin').classList.add('hidden-section');
-            }
-            // Auto-completar fecha de hoy
-            document.getElementById('gasto-fecha').value = new Date().toISOString().substring(0, 10);
-            renderizarUsuariosAdmin();
-        } else {
-            alert('Usuario o contraseña incorrectos.');
-        }
-    }
-
-    function cerrarSesion() {
-        sesionActiva = null;
-        document.getElementById('tecnico-section').classList.add('hidden-section');
-        document.getElementById('admin-section').classList.add('hidden-section');
-        document.getElementById('login-section').classList.remove('hidden-section');
-        document.getElementById('login-user').value = '';
-        document.getElementById('login-pass').value = '';
-    }
-
-    // Proceso inteligente de extracción OCR desde el teléfono
-    function procesarTicket(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // Mostrar vista previa en miniatura
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('ticket-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            imagenBase64Ticket = e.target.result; // Guardar para el PDF
-        }
-        reader.readAsDataURL(file);
-
-        // Ejecutar OCR en segundo plano usando Tesseract
-        document.getElementById('ocr-loading').style.display = 'block';
-        Tesseract.recognize(file, 'spa')
-            .then(({ data: { text } }) => {
-                document.getElementById('ocr-loading').style.display = 'none';
-                analizarTextoTicket(text);
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('ocr-loading').style.display = 'none';
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registrado con éxito.', reg))
+                    .catch(err => console.error('Error al registrar el Service Worker.', err));
             });
-    }
-
-    function analizarTextoTicket(texto) {
-        console.log("Texto detectado:", texto);
-        
-        // Algoritmo básico para buscar importes (busca patrones monetarios o la cifra mayor)
-        const regexMoneda = /(?:total|importe|neto|eur|€)[\s:]*([0-9]+[.,][0-9]{2})/i;
-        const matchPrecio = texto.match(regexMoneda);
-        if (matchPrecio && matchPrecio[1]) {
-            document.getElementById('gasto-importe').value = matchPrecio[1].replace(',', '.');
-        } else {
-            // Alternativa: buscar el número decimal más alto que suele ser el total
-            const numerosDecimales = texto.match(/\b[0-9]+[.,][0-9]{2}\b/g);
-            if (numerasDecimales) {
-                const valores = numerosDecimales.map(n => parseFloat(n.replace(',', '.')));
-                const maxValor = Math.max(...valores);
-                if(maxValor > 0) document.getElementById('gasto-importe').value = maxValor;
-            }
         }
-
-        // Algoritmo básico para buscar fechas (dd/mm/aaaa o dd-mm-aaaa)
-        const regexFecha = /\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\b/;
-        const matchFecha = texto.match(regexFecha);
-        if (matchFecha) {
-            let dia = matchFecha[1].padStart(2, '0');
-            let mes = matchFecha[2].padStart(2, '0');
-            let anyo = matchFecha[3];
-            document.getElementById('gasto-fecha').value = `${anyo}-${mes}-${dia}`;
-        }
-    }
-
-    // Lógica para estructurar el reporte PDF en el dispositivo móvil
-    function generarYEnviarGasto() {
-        const tipo = document.querySelector('input[name="tipoGasto"]:checked').value;
-        const importe = document.getElementById('gasto-importe').value;
-        const fecha = document.getElementById('gasto-fecha').value;
-        const direccion = document.getElementById('gasto-direccion').value.trim();
-        const observaciones = document.getElementById('gasto-observaciones').value.trim();
-        const config = JSON.parse(localStorage.getItem('app_config'));
-
-        if (!importe || !fecha || !direccion) {
-            alert('Por favor, completa los campos de Importe, Fecha y Dirección.');
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // Encabezado del PDF Profesional
-        doc.setFillColor(33, 37, 41);
-        doc.rect(0, 0, 220, 40, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.text("REPORTE NOTIFICACIÓN DE GASTO", 14, 26);
-
-        // Cuerpo del reporte
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text("DATOS GENERALES DEL TRABAJO:", 14, 55);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Técnico Asignado: ${sesionActiva.nombre}`, 14, 65);
-        doc.text(`Dirección / Ubicación: ${direccion}`, 14, 73);
-        doc.text(`Fecha del Gasto: ${fecha}`, 14, 81);
-
-        doc.setFont("helvetica", "bold");
-        doc.text("DETALLES DEL GASTO:", 14, 95);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Concepto / Bloque: Gasto de ${tipo}`, 14, 105);
-        doc.setFont("helvetica", "bold");
-        doc.text(`TOTAL FACTURADO: ${importe} EUR`, 14, 113);
-
-        if (observaciones) {
-            doc.setFont("helvetica", "bold");
-            doc.text("OBSERVACIONES TÉCNICAS:", 14, 125);
-            doc.setFont("helvetica", "normal");
-            doc.text(observaciones, 14, 133, { maxWidth: 180 });
-        }
-
-        // Añadir el ticket escaneado si existe
-        if (imagenBase64Ticket) {
-            doc.addPage();
-            doc.setFillColor(240, 240, 240);
-            doc.rect(0, 0, 220, 20, 'F');
-            doc.text("JUSTIFICANTE - TICKET CAPTURADO", 14, 14);
-            try {
-                doc.addImage(imagenBase64Ticket, 'JPEG', 14, 30, 180, 220);
-            } catch (e) {
-                console.error("No se pudo insertar la imagen en el PDF directamente", e);
-            }
-        }
-
-        // Simulación de envío final (En entorno real se integra EmailJS o backend)
-        alert(`¡PDF Generado con éxito!\n\nEnviando reporte automáticamente al buzón corporativo de secretaría: ${config.correoSecretaria}\n\n(El archivo se descargará en tu móvil para control personal).`);
-        
-        // Descarga el PDF en el móvil del técnico
-        doc.save(`Gasto_${tipo}_${fecha}_${sesionActiva.user}.pdf`);
-    }
-
-    // ================= FUNCIONES PANEL MAESTRO =================
-    function mostrarAdminSection() {
-        document.getElementById('tecnico-section').className = 'hidden-section';
-        document.getElementById('admin-section').className = 'block';
-        const config = JSON.parse(localStorage.getItem('app_config'));
-        document.getElementById('config-correo-secretaria').value = config.correoSecretaria;
-        renderizarUsuariosAdmin();
-    }
-
-    function regresarAlFormulario() {
-        document.getElementById('admin-section').className = 'hidden-section';
-        document.getElementById('tecnico-section').className = 'block';
-    }
-
-    function guardarCorreoSecretaria() {
-        const nuevoCorreo = document.getElementById('config-correo-secretaria').value.trim();
-        if(!nuevoCorreo) return;
-        const config = JSON.parse(localStorage.getItem('app_config'));
-        config.correoSecretaria = nuevoCorreo;
-        localStorage.setItem('app_config', JSON.stringify(config));
-        alert('Correo de destino actualizado correctamente.');
-    }
-
-    function renderizarUsuariosAdmin() {
-        const config = JSON.parse(localStorage.getItem('app_config'));
-        const listaUI = document.getElementById('lista-usuarios-ui');
-        if(!listaUI) return;
-        listaUI.innerHTML = '';
-
-        config.usuarios.forEach((u, index) => {
-            const li = document.createElement('li');
-            li.className = "list-group-item d-flex justify-content-between align-items-center small";
-            li.innerHTML = `
-                <div>
-                    <strong>${u.nombre}</strong> <span class="text-muted">(${u.user})</span><br>
-                    <span class="badge ${u.rol === 'admin' ? 'bg-warning text-dark' : 'bg-secondary'}">${u.rol.toUpperCase()}</span>
-                </div>
-                ${u.user !== 'admin' ? `<button class="btn btn-outline-danger btn-sm px-2 py-1" onclick="eliminarUsuario(${index})"><i class="bi bi-trash"></i></button>` : ''}
-            `;
-            listaUI.appendChild(li);
-        });
-    }
-
-    function agregarUsuario() {
-        const user = document.getElementById('nuevo-user-name').value.trim();
-        const pass = document.getElementById('nuevo-user-pass').value.trim();
-        if(!user || !pass) { alert('Rellena usuario y contraseña.'); return; }
-
-        const config = JSON.parse(localStorage.getItem('app_config'));
-        if(config.usuarios.some(u => u.user === user)) { alert('El usuario ya existe.'); return; }
-
-        config.usuarios.push({
-            user: user,
-            pass: pass,
-            rol: 'tecnico',
-            nombre: user.charAt(0).toUpperCase() + user.slice(1)
-        });
-
-        localStorage.setItem('app_config', JSON.stringify(config));
-        document.getElementById('nuevo-user-name').value = '';
-        document.getElementById('nuevo-user-pass').value = '';
-        renderizarUsuariosAdmin();
-    }
-
-    function eliminarUsuario(index) {
-        if(!confirm('¿Estás seguro de eliminar este usuario técnico?')) return;
-        const config = JSON.parse(localStorage.getItem('app_config'));
-        config.usuarios.splice(index, 1);
-        localStorage.setItem('app_config', JSON.stringify(config));
-        renderizarUsuariosAdmin();
-    }
-</script>
+    </script>
 </body>
 </html>
