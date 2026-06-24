@@ -4,131 +4,246 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ascensores La Fe - Gestión Técnica</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="image.png">
+    <style>
+        /* Variables de diseño de inspiración minimalista y moderna */
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+            --accent-walnut: #4a3728; /* Tono madera nogal */
+            --accent-dark: #111111;   /* Acentos negros */
+            --border-color: #e5e5e5;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-dark);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent-walnut);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--accent-walnut);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .elevator-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .rae-number {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .card-body p {
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-body p span:first-child {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .card-body p span:last-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            background-color: var(--card-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .search-bar {
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="login-screen" class="login-container">
-        <div class="login-card card">
-            <div class="login-logo">
-                <img src="image.png" alt="Logo Elevia" class="company-logo-login">
-            </div>
-            <h2>Control de Acceso</h2>
-            <p>Introduce tus credenciales para acceder al sistema técnico.</p>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Usuario:</label>
-                    <input type="text" id="username" required placeholder="Tu usuario">
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña:</label>
-                    <input type="password" id="password" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn-primary btn-block">Iniciar Sesión</button>
-                <p id="login-error" class="error-text hidden">Usuario o contraseña incorrectos.</p>
-            </form>
-        </div>
-    </div>
-
-    <div id="app-content" class="hidden">
-        
-        <header class="app-header">
-            <div class="header-container">
-                <div class="logo-container">
-                    <img src="image.png" alt="Logo Elevia" class="company-logo">
-                </div>
-                <div class="app-title">
-                    <h1>Ascensores La Fe</h1>
-                    <p>Panel de Control y Mantenimiento Técnico</p>
-                </div>
-                <div class="logout-container">
-                    <button id="btn-logout" class="btn-danger-outline">Cerrar Sesión</button>
-                </div>
+    <div class="container">
+        <header>
+            <h1>Ascensores La Fe</h1>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar por número, RAE o línea...">
             </div>
         </header>
 
-        <main class="app-container">
-            
-            <section class="search-section card">
-                <h2>Buscar Ascensor</h2>
-                <div class="search-box">
-                    <input type="text" id="search-input" placeholder="Introduce Nº de ascensor, RAE o teléfono...">
-                    <button id="btn-search" class="btn-primary">Buscar</button>
-                </div>
-            </section>
-
-            <section class="data-section card">
-                <div class="section-header">
-                    <h2>Unidades Registradas</h2>
-                    <button id="btn-add-elevator" class="btn-secondary">+ Añadir Unidad</button>
-                </div>
-                
-                <div class="table-responsive">
-                    <table id="elevators-table">
-                        <thead>
-                            <tr>
-                                <th>Nº ID</th>
-                                <th>Nº RAE</th>
-                                <th>Línea Teléfono</th>
-                                <th>Código IMEI</th>
-                                <th>Próxima OCA</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="elevators-list">
-                            </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <div id="elevator-modal" class="modal hidden">
-                <div class="modal-content card">
-                    <span class="close-modal">&times;</span>
-                    <h2 id="modal-title">Detalles del Ascensor</h2>
-                    <form id="elevator-form">
-                        <input type="hidden" id="modal-action-type" value="edit">
-                        <div class="form-group">
-                            <label for="elevator-id">Número de Ascensor:</label>
-                            <input type="number" id="elevator-id" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="elevator-rae">Número RAE:</label>
-                            <input type="text" id="elevator-rae" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="elevator-phone">Línea Telefónica:</label>
-                            <input type="tel" id="elevator-phone">
-                        </div>
-                        <div class="form-group">
-                            <label for="elevator-imei">Código IMEI:</label>
-                            <input type="text" id="elevator-imei">
-                        </div>
-                        <div class="form-group">
-                            <label for="elevator-oca">Fecha Próxima OCA:</label>
-                            <input type="date" id="elevator-oca">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">Guardar Cambios</button>
-                            <button type="button" id="btn-cancel" class="btn-danger">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
+        <main class="grid" id="elevatorGrid">
+            <!-- Los ascensores se cargarán dinámicamente aquí -->
         </main>
     </div>
 
-    <script src="app.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registrado con éxito.', reg))
-                    .catch(err => console.error('Error al registrar el Service Worker.', err));
+        // Datos técnicos de los ascensores instalados en el Hospital La Fe
+        const elevatorData = [
+            { id: "51", rae: "RAE-00051", linea: "961 234 501", especificaciones: "Montacamillas - Principal" },
+            { id: "52", rae: "RAE-00052", linea: "961 234 502", especificaciones: "Montacamillas - Servicio" },
+            { id: "53", rae: "RAE-00053", linea: "961 234 503", especificaciones: "Público - Bloque A" },
+            { id: "54", rae: "RAE-00054", linea: "961 234 504", especificaciones: "Público - Bloque B" },
+            { id: "55", rae: "RAE-00055", linea: "961 234 505", especificaciones: "Personal - Urgencias" }
+        ];
+
+        const elevatorGrid = document.getElementById('elevatorGrid');
+        const searchInput = document.getElementById('searchInput');
+
+        // Función para renderizar las tarjetas en la pantalla
+        function renderElevators(data) {
+            elevatorGrid.innerHTML = '';
+            
+            if (data.length === 0) {
+                elevatorGrid.innerHTML = '<div class="no-results">No se encontraron ascensores que coincidan con la búsqueda.</div>';
+                return;
+            }
+
+            data.forEach(elevator => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="elevator-number">Ascensor ${elevator.id}</span>
+                        <span class="rae-number">${elevator.rae}</span>
+                    </div>
+                    <div class="card-body">
+                        <p><span>Línea Tlf:</span> <span>${elevator.linea}</span></p>
+                        <p><span>Tipo/Ubicación:</span> <span>${elevator.especificaciones}</span></p>
+                    </div>
+                `;
+                elevatorGrid.appendChild(card);
             });
         }
+
+        // Función de filtrado en tiempo real
+        function filterElevators() {
+            const query = searchInput.value.toLowerCase().trim();
+            
+            const filtered = elevatorData.filter(elevator => {
+                return elevator.id.toLowerCase().includes(query) || 
+                       elevator.rae.toLowerCase().includes(query) || 
+                       elevator.linea.toLowerCase().includes(query) ||
+                       elevator.especificaciones.toLowerCase().includes(query);
+            });
+            
+            renderElevators(filtered);
+        }
+
+        // Event listener para la barra de búsqueda
+        searchInput.addEventListener('input', filterElevators);
+
+        // Renderizado inicial al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            renderElevators(elevatorData);
+        });
     </script>
 </body>
 </html>
