@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elevia - Control de Gastos Inteligente</title>
+    <title>Elevia - Control Avanzado de Gastos</title>
     <style>
         :root {
-            --primary: #1e293b;
-            --primary-light: #334155;
-            --accent-walnut: #4a3728; /* Detalle elegante en tono nogal */
-            --accent-dark: #0f172a;   /* Acentos negros pulidos */
-            --bg-app: #f8fafc;
+            --bg-app: #f1f5f9;
             --bg-card: #ffffff;
             --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --pending: #d97706;
-            --radius: 12px;
+            --text-muted: #475569;
+            --accent-walnut: #3e2723; /* Nogal oscuro sofisticado */
+            --accent-dark: #090d16;   /* Negro profundo */
+            --border-color: #e2e8f0;
+            --primary-blue: #1e3a8a;
+            --success: #10b981;
+            --danger: #ef4444;
+            --pending: #f59e0b;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+            --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.03);
         }
 
         * {
@@ -25,6 +28,7 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
@@ -33,9 +37,7 @@
             min-height: 100vh;
         }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
 
         /* --- PANTALLA DE LOGIN --- */
         .login-container {
@@ -43,42 +45,43 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: linear-gradient(145deg, #090d16 0%, #1e293b 100%);
             padding: 20px;
         }
 
         .login-card {
             background: var(--bg-card);
-            padding: 40px 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            padding: 45px 35px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
         }
 
         .login-logo img {
-            height: 55px;
+            height: 60px;
             margin-bottom: 24px;
             object-fit: contain;
         }
 
         .login-card h2 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--accent-dark);
             margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
         .login-card p {
             font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 28px;
+            margin-bottom: 30px;
         }
 
-        /* --- FORMULARIOS --- */
+        /* --- FORMULARIOS PREMIUM --- */
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             text-align: left;
         }
 
@@ -86,58 +89,85 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--primary-light);
+            margin-bottom: 8px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 11px 14px;
+            padding: 12px 16px;
             font-size: 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background-color: #ffffff;
             color: var(--text-main);
             transition: all 0.2s ease;
         }
 
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--accent-walnut);
-            box-shadow: 0 0 0 3px rgba(74, 55, 40, 0.15);
+            box-shadow: 0 0 0 3px rgba(62, 39, 35, 0.12);
         }
 
+        /* --- BOTONES --- */
         .btn-primary {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             font-size: 14px;
             font-weight: 600;
             background-color: var(--accent-dark);
             color: white;
             border: none;
-            border-radius: var(--radius);
+            border-radius: var(--radius-md);
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
 
         .btn-primary:hover {
             background-color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .btn-success { background-color: var(--success); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-success:hover { filter: brightness(1.1); }
+        
+        .btn-danger { background-color: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover { filter: brightness(1.1); }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px dashed var(--text-muted);
+            color: var(--text-main);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(0,0,0,0.04);
+            border-color: var(--accent-dark);
         }
 
         /* --- CABECERA DE LA APP --- */
         .app-header {
             background-color: var(--accent-dark);
             color: white;
-            padding: 16px 24px;
+            padding: 16px 32px;
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            border-bottom: 3px solid var(--accent-walnut);
+            box-shadow: var(--shadow-sm);
+            border-bottom: 4px solid var(--accent-walnut);
         }
 
         .header-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -151,25 +181,26 @@
         }
 
         .company-logo {
-            height: 40px;
+            height: 42px;
             object-fit: contain;
         }
 
         .app-title h1 {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 700;
             letter-spacing: 0.5px;
         }
 
         .app-title p {
-            font-size: 12px;
+            font-size: 11px;
             color: #94a3b8;
+            text-transform: uppercase;
         }
 
         .header-right-actions {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
         }
 
         .welcome-msg {
@@ -182,41 +213,42 @@
             background: transparent;
             border: 1px solid #475569;
             color: #cbd5e1;
-            padding: 6px 12px;
+            padding: 7px 14px;
             font-size: 12px;
             font-weight: 500;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .btn-logout:hover {
             background: #cbd5e1;
-            color: var(--primary);
+            color: var(--accent-dark);
         }
 
-        /* --- CONTENEDOR PRINCIPAL --- */
+        /* --- PANEL DE DISEÑO --- */
         .app-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 32px auto;
             padding: 0 24px;
         }
 
         .card {
             background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: relative;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-sm);
         }
 
         .card h2 {
             font-size: 16px;
             font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 18px;
+            color: var(--accent-dark);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -224,163 +256,90 @@
 
         .meta-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-        }
-
-        /* --- TABLAS --- */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 14px;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: var(--primary-light);
-            font-weight: 600;
-            padding: 12px 16px;
-            border-bottom: 2px solid var(--border);
-        }
-
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            vertical-align: middle;
-        }
-
-        table input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 13px;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            border: 1px dashed var(--primary-light);
-            color: var(--primary-light);
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-secondary:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-            border-color: #000;
-        }
-
-        /* --- SUBIDA Y CAPTURA DE FOTOS --- */
-        .file-upload-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .photo-label {
-            display: inline-block;
-            background: #f1f5f9;
-            border: 1px solid var(--border);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-
-        .photo-label:hover {
-            background: #e2e8f0;
-        }
-
-        .photo-input {
-            display: none;
-        }
-
-        .image-preview-container {
-            margin-top: 4px;
-        }
-
-        .img-preview {
-            max-height: 50px;
-            max-width: 90px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            object-fit: cover;
-        }
-
-        /* --- DESGLOSE DE TOTALES --- */
-        .totals-box {
-            max-width: 400px;
-            margin-left: auto;
-        }
-
-        .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 14px;
-        }
-
-        .total-row.grand-total {
-            font-size: 18px;
-            color: var(--accent-walnut);
-            padding-top: 14px;
-            margin-top: 8px;
-            border-top: 2px solid var(--border);
-        }
-
-        /* --- PANEL ADMIN VISTAZO RÁPIDO --- */
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
-            margin-bottom: 24px;
         }
 
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-        }
+        /* --- TABLAS ELEGANTES --- */
+        .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; padding: 14px 18px; border-bottom: 2px solid var(--border-color); font-size: 12px; text-transform: uppercase; }
+        td { padding: 14px 18px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        table input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 13px; }
 
-        .stat-card h3 {
-            font-size: 13px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
+        /* --- COMPONENTE MULTIMEDIA DIETAS --- */
+        .file-upload-wrapper { display: flex; align-items: center; gap: 12px; }
+        .photo-label { background: #f1f5f9; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: var(--radius-md); font-size: 12px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .photo-label:hover { background: #e2e8f0; }
+        .photo-input { display: none; }
+        .img-preview { max-height: 50px; max-width: 90px; border-radius: 6px; border: 1px solid var(--border-color); object-fit: cover; box-shadow: var(--shadow-sm); }
 
-        .stat-number {
-            font-size: 24px;
+        /* --- CUADRO DE TOTALES DESGLOSADOS --- */
+        .totals-container { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; }
+        .totals-box { width: 100%; max-width: 420px; margin-left: auto; background: #f8fafc; padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; color: var(--text-muted); }
+        .total-row.grand-total { font-size: 19px; color: var(--accent-walnut); padding-top: 14px; margin-top: 10px; border-top: 2px dashed var(--border-color); }
+
+        /* --- ADM DASHBOARD --- */
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 28px; }
+        .stat-card { background: white; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .stat-card h3 { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .stat-number { font-size: 26px; font-weight: 700; color: var(--accent-dark); }
+        
+        .status-badge { display: inline-block; padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 20px; text-transform: uppercase; }
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #dcfce7; color: #059669; }
+        .status-rejected { background: #fee2e2; color: #dc2626; }
+
+        .btn-action-small { background: var(--accent-dark); color: white; border: none; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; margin-right: 4px; }
+        .btn-action-small:hover { background: #000; }
+        .btn-action-outline { background: white; border: 1px solid var(--border-color); padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-action-outline:hover { border-color: var(--accent-dark); }
+
+        /* --- PREVIEW LIVE PANTALLAZO DOCUMENTO --- */
+        .preview-document-container {
+            background: #ffffff;
+            border: 2px solid #94a3b8;
+            border-radius: var(--radius-md);
+            padding: 40px;
+            margin-top: 24px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+        }
+        .preview-document-container::before {
+            content: "PANTALLAZO DEL DOCUMENTO GENERADO / VISTA PREVIA IMPRESIÓN";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #94a3b8;
+            color: white;
+            font-size: 10px;
             font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 0 0 8px 8px;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: 600;
-            border-radius: 12px;
+        /* --- CONFIG MODALES --- */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
         }
+        .modal-content {
+            background: white; padding: 35px; border-radius: var(--radius-lg);
+            width: 100%; max-width: 55px; max-width: 550px; box-shadow: var(--shadow-md);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; font-weight: 700; }
+        .close-modal { font-size: 24px; cursor: pointer; color: var(--text-muted); }
 
-        .status-pending { background: #fef3c7; color: #b45309; }
-        .status-approved { background: #dcfce7; color: #15803d; }
-
+        /* IMPRESIÓN */
         @media print {
-            .no-print, .app-header { display: none !important; }
+            .no-print, .app-header, .btn-secondary, .file-upload-wrapper { display: none !important; }
             body { background: white; padding: 0; }
             .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; }
         }
@@ -394,18 +353,17 @@
                 <img src="image.png" alt="Logo Empresa">
             </div>
             <h2>Control de Acceso</h2>
-            <p>Introduce tus credenciales para continuar</p>
+            <p>Introduce tus credenciales operativas</p>
             <form id="login-form">
                 <div class="form-group">
                     <label for="username">Usuario / Técnico:</label>
-                    <input type="text" id="username" required placeholder="Tu nombre o 'admin'">
+                    <input type="text" id="username" required placeholder="Tu nombre (ej. Juan Carlos) u 'admin'">
                 </div>
                 <div class="form-group">
                     <label for="password">Contraseña:</label>
                     <input type="password" id="password" required placeholder="••••••••">
                 </div>
                 <button type="submit" class="btn-primary">Iniciar Sesión</button>
-                <p id="login-error" class="error-text hidden">Credenciales incorrectas.</p>
             </form>
         </div>
     </div>
@@ -429,42 +387,40 @@
         </header>
 
         <main id="view-tecnico" class="app-container hidden">
+            
             <section class="card">
-                <h2>Información General</h2>
+                <h2>Información de la Hoja de Control</h2>
                 <div class="meta-grid">
                     <div class="form-group">
-                        <label>Técnico Activo:</label>
-                        <input type="text" id="worker-name-display" readonly style="background:#f1f5f9; font-weight:600;">
+                        <label>Técnico Remitente:</label>
+                        <input type="text" id="worker-name-display" readonly style="background:#f8fafc; font-weight:600;">
                     </div>
                     <div class="form-group">
-                        <label>Fecha de Registro:</label>
+                        <label>Fecha de Emisión:</label>
                         <input type="date" id="report-date">
                     </div>
                     <div class="form-group">
-                        <label>Mes / Período:</label>
+                        <label>Mes de Liquidación:</label>
                         <input type="month" id="report-period">
                     </div>
                 </div>
             </section>
 
             <section class="card">
-                <h2>1. Combustible / Kilometraje <button type="button" class="btn-secondary" onclick="addRow('table-fuel', 'fuel-total')">+ Añadir Línea</button></h2>
+                <h2>1. Combustible / Kilometraje <button type="button" class="btn-secondary" onclick="addRow('table-fuel', 'fuel-total')">+ Añadir Fila</button></h2>
                 <div class="table-responsive">
                     <table id="table-fuel">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Ruta / Desplazamiento</th>
-                                <th>Km / Litros</th>
-                                <th style="width:150px;">Importe (€)</th>
+                                <th>Fecha</th><th>Ruta / Destino Técnico</th><th>Litros/Km</th><th style="width:160px;">Importe (€)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><input type="date"></td>
-                                <td><input type="text" placeholder="Ej. Ruta de mantenimientos"></td>
+                                <td><input type="text" placeholder="Ej. Valencia - Hospital La Fe" oninput="syncPreview()"></td>
                                 <td><input type="number" step="0.01"></td>
-                                <td><input type="number" step="0.01" class="amount-input fuel-total"></td>
+                                <td><input type="number" step="0.01" class="amount-input fuel-total" oninput="syncPreview()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -472,23 +428,20 @@
             </section>
 
             <section class="card">
-                <h2>2. Materiales y Suministros <button type="button" class="btn-secondary" onclick="addRow('table-materials', 'materials-total')">+ Añadir Línea</button></h2>
+                <h2>2. Materiales y Suministros <button type="button" class="btn-secondary" onclick="addRow('table-materials', 'materials-total')">+ Añadir Fila</button></h2>
                 <div class="table-responsive">
                     <table id="table-materials">
                         <thead>
                             <tr>
-                                <th>Nº Albarán</th>
-                                <th>Descripción de Material</th>
-                                <th>Proveedor</th>
-                                <th style="width:150px;">Importe (€)</th>
+                                <th>Nº Albarán/Factura</th><th>Descripción Corta Material</th><th>Proveedor</th><th style="width:160px;">Importe (€)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><input type="text" placeholder="Nº"></td>
-                                <td><input type="text" placeholder="Materiales utilizados"></td>
+                                <td><input type="text" placeholder="Componentes utilizados" oninput="syncPreview()"></td>
                                 <td><input type="text" placeholder="Proveedor"></td>
-                                <td><input type="number" step="0.01" class="amount-input materials-total"></td>
+                                <td><input type="number" step="0.01" class="amount-input materials-total" oninput="syncPreview()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -501,26 +454,23 @@
                     <table id="table-dietas">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Establecimiento / Detalle</th>
-                                <th style="width:220px;">Ticket / Captura</th>
-                                <th style="width:150px;">Importe (€)</th>
+                                <th>Fecha</th><th>Establecimiento</th><th style="width:240px;">Ticket Adjunto</th><th style="width:160px;">Importe (€)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><input type="date"></td>
-                                <td><input type="text" placeholder="Ej. Almuerzo / Media dieta diaria"></td>
+                                <td><input type="text" placeholder="Media dieta diaria" oninput="syncPreview()"></td>
                                 <td>
                                     <div class="file-upload-wrapper">
-                                        <label class="photo-label" onclick="this.nextElementSibling.click()">📷 Capturar Ticket</label>
+                                        <label class="photo-label" onclick="this.nextElementSibling.click()">📷 Adjuntar Foto</label>
                                         <input type="file" accept="image/*" class="photo-input" onchange="previewImage(this)">
                                         <div class="image-preview-container hidden">
                                             <img src="" class="img-preview" alt="Ticket">
                                         </div>
                                     </div>
                                 </td>
-                                <td><input type="number" step="0.01" class="amount-input dietas-total"></td>
+                                <td><input type="number" step="0.01" class="amount-input dietas-total" oninput="syncPreview()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -528,23 +478,20 @@
             </section>
 
             <section class="card">
-                <h2>4. Parking, Peajes y Varios <button type="button" class="btn-secondary" onclick="addRow('table-parking', 'parking-total')">+ Añadir Línea</button></h2>
+                <h2>4. Parking, Peajes y Varios <button type="button" class="btn-secondary" onclick="addRow('table-parking', 'parking-total')">+ Añadir Fila</button></h2>
                 <div class="table-responsive">
                     <table id="table-parking">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Concepto / Ubicación</th>
-                                <th>Ticket Nº</th>
-                                <th style="width:150px;">Importe (€)</th>
+                                <th>Fecha</th><th>Ubicación / Concepto</th><th>Nº Ticket</th><th style="width:160px;">Importe (€)</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><input type="date"></td>
-                                <td><input type="text" placeholder="Ubicación parking"></td>
+                                <td><input type="text" placeholder="Parking zona centro ORA" oninput="syncPreview()"></td>
                                 <td><input type="text" placeholder="Nº"></td>
-                                <td><input type="number" step="0.01" class="amount-input parking-total"></td>
+                                <td><input type="number" step="0.01" class="amount-input parking-total" oninput="syncPreview()"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -552,98 +499,158 @@
             </section>
 
             <section class="card">
-                <h2>Resumen Desglosado Mensual</h2>
-                <div class="totals-box">
-                    <div class="total-row"><span>Total Combustible:</span><span id="subtotal-fuel" style="font-weight:600;">0.00 €</span></div>
-                    <div class="total-row"><span>Total Materiales:</span><span id="subtotal-materials" style="font-weight:600;">0.00 €</span></div>
-                    <div class="total-row"><span>Total Medias Dietas:</span><span id="subtotal-dietas" style="font-weight:600;">0.00 €</span></div>
-                    <div class="total-row"><span>Total Parking / Varios:</span><span id="subtotal-parking" style="font-weight:600;">0.00 €</span></div>
-                    <div class="total-row grand-total">
-                        <strong>TOTAL A REEMBOLSAR:</strong>
-                        <strong id="grand-total">0.00 €</strong>
+                <h2>Resumen Económico y Envío</h2>
+                <div class="totals-container">
+                    <div style="max-width: 500px; color: var(--text-muted); font-size: 14px;">
+                        <p>Al hacer clic en <strong>"Enviar Hoja a Administración"</strong>, el informe se remitirá automáticamente por correo electrónico al buzón configurado de la administrativa corporativa (<span id="remit-email-badge" style="font-weight: 700; color:var(--accent-dark);">administracion@elevia.es</span>).</p>
+                        <button type="button" class="btn-primary" onclick="submitToAdmin()" style="margin-top: 20px; background-color: #10b981; max-width: 300px;">📬 Enviar Hoja a Administración</button>
+                    </div>
+                    <div class="totals-box">
+                        <div class="total-row"><span>Acumulado Combustible:</span><span id="subtotal-fuel">0.00 €</span></div>
+                        <div class="total-row"><span>Acumulado Materiales:</span><span id="subtotal-materials">0.00 €</span></div>
+                        <div class="total-row"><span>Acumulado Medias Dietas:</span><span id="subtotal-dietas">0.00 €</span></div>
+                        <div class="total-row"><span>Acumulado Parking / Otros:</span><span id="subtotal-parking">0.00 €</span></div>
+                        <div class="total-row grand-total">
+                            <strong>IMPORTE TOTAL LIQUIDACIÓN:</strong>
+                            <strong id="grand-total">0.00 €</strong>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <div class="no-print" style="text-align:right;">
-                <button onclick="window.print()" class="btn-primary" style="width:auto; padding:12px 30px;">Imprimir / Guardar PDF</button>
+            <div class="preview-document-container" id="tech-document-preview">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
+                    <img src="image.png" style="height:35px;" alt="Logo">
+                    <div style="text-align:right;">
+                        <h3 style="font-size:16px; margin:0;">REPORTE OFICIAL DE GASTOS</h3>
+                        <p style="font-size:11px; color:#666;" id="preview-meta-txt">Fecha: - | Remitente: -</p>
+                    </div>
+                </div>
+                <div id="preview-lines-content" style="font-size:13px; min-height:60px; color:#333;">
+                    Ninguna línea con importe registrada actualmente.
+                </div>
+                <div style="border-top:1px solid #ccc; margin-top:20px; padding-top:10px; text-align:right; font-weight:700; font-size:16px;" id="preview-total-txt">
+                    TOTAL A REEMBOLSAR: 0.00 €
+                </div>
             </div>
         </main>
 
         <main id="view-admin" class="app-container hidden">
+            
             <div class="dashboard-stats">
                 <div class="stat-card">
-                    <h3>Gastos Globales (Mes)</h3>
-                    <div class="stat-number" style="color:var(--accent-dark)">1,140.70 €</div>
+                    <h3>Presupuesto Devengado Mensual</h3>
+                    <div class="stat-number">1,140.70 €</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Hojas Recibidas</h3>
-                    <div class="stat-number">3</div>
+                    <h3>Ajustes Generales</h3>
+                    <div style="margin-top:10px;">
+                        <button class="btn-action-outline" onclick="openAdminSettings()">⚙️ Parámetros y Credenciales</button>
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <h3>Revisiones Pendientes</h3>
-                    <div class="stat-number" style="color:var(--pending)">2</div>
+                    <h3>Destino de Informes</h3>
+                    <div class="stat-number" id="admin-current-email-view" style="font-size:14px; font-weight:600; color:var(--primary-blue); margin-top:5px;">administracion@elevia.es</div>
                 </div>
             </div>
 
             <section class="card">
-                <h2>Desglose de Gastos por Técnico de un Vistazo</h2>
+                <h2>Revisión de Liquidaciones de Técnicos</h2>
                 <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
-                                <th>Técnico</th>
-                                <th>Combustible</th>
-                                <th>Materiales</th>
-                                <th>Medias Dietas</th>
-                                <th>Parking/Otros</th>
-                                <th style="font-weight:700; background:#f1f5f9;">Total Neto</th>
-                                <th>Estado</th>
+                                <th>Técnico</th><th>Combustible</th><th>Materiales</th><th>Dietas</th><th>Parking</th><th>Total</th><th>Estado</th><th>Acciones de Control</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
+                        <tbody id="admin-table-body">
+                            <tr id="row-tecnico-juancarlos">
                                 <td style="font-weight:600;">Juan Carlos</td>
-                                <td>150.00 €</td>
-                                <td>45.20 €</td>
-                                <td>120.00 €</td>
-                                <td>12.50 €</td>
-                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">327.70 €</td>
-                                <td><span class="status-badge status-pending">Pendiente</span></td>
+                                <td>150.00 €</td><td>45.20 €</td><td>120.00 €</td><td>12.50 €</td>
+                                <td style="font-weight:700; color:var(--primary-blue);">327.70 €</td>
+                                <td><span class="status-badge status-pending" id="badge-juancarlos">Pendiente</span></td>
+                                <td>
+                                    <button class="btn-action-small" onclick="viewReportPantallazo('Juan Carlos', '327.70', 'Combustible Mensual, Materiales de sustitución de placas, Medias dietas acumuladas, ORA Valencia')">🔍 Ver Pantallazo</button>
+                                    <button class="btn-success" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('juancarlos', 'approved')">Aprobar</button>
+                                    <button class="btn-danger" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('juancarlos', 'rejected')">Rechazar</button>
+                                </td>
                             </tr>
-                            <tr>
+                            <tr id="row-tecnico-carlos">
                                 <td style="font-weight:600;">Carlos Mendoza</td>
-                                <td>280.00 €</td>
-                                <td>110.50 €</td>
-                                <td>90.00 €</td>
-                                <td>5.00 €</td>
-                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">486.00 €</td>
-                                <td><span class="status-badge status-approved">Validado</span></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight:600;">Javier Ortiz</td>
-                                <td>95.00 €</td>
-                                <td>0.00 €</td>
-                                <td>210.00 €</td>
-                                <td>22.00 €</td>
-                                <td style="font-weight:700; color:var(--success); background:#f8fafc;">327.00 €</td>
-                                <td><span class="status-badge status-pending">Pendiente</span></td>
+                                <td>280.00 €</td><td>110.50 €</td><td>90.00 €</td><td>5.00 €</td>
+                                <td style="font-weight:700; color:var(--primary-blue);">486.00 €</td>
+                                <td><span class="status-badge status-approved" id="badge-carlos">Validado</span></td>
+                                <td>
+                                    <button class="btn-action-small" onclick="viewReportPantallazo('Carlos Mendoza', '486.00', 'Ruta Valencia, Suministros cableado, Dieta Almuerzo')">🔍 Ver Pantallazo</button>
+                                    <button class="btn-success" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('carlos', 'approved')">Aprobar</button>
+                                    <button class="btn-danger" style="padding:5px 10px; font-size:12px;" onclick="changeStatus('carlos', 'rejected')">Rechazar</button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
+
+            <div class="card hidden" id="admin-report-preview-zone">
+                <h2>Pantallazo del Informe Digital (Visualización de Auditoría)</h2>
+                <div class="preview-document-container" style="border-color: var(--accent-walnut);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
+                        <img src="image.png" style="height:35px;" alt="Logo">
+                        <div style="text-align:right;">
+                            <h3 style="font-size:16px; margin:0;">INFORME RECEPCIONADO</h3>
+                            <p style="font-size:11px; color:#666;" id="admin-preview-meta">Técnico: -</p>
+                        </div>
+                    </div>
+                    <div id="admin-preview-body" style="font-size:13px; color:#333; line-height:1.6;">
+                        Selecciona un técnico arriba para auditar el pantallazo de sus gastos oficiales y tickets adjuntos.
+                    </div>
+                    <div style="border-top:1px solid #ccc; margin-top:20px; padding-top:10px; text-align:right; font-weight:700; font-size:16px; color:var(--primary-blue);" id="admin-preview-total">
+                        TOTAL REVISADO: 0.00 €
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
+    <div id="admin-settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Panel de Control de Personal y Parámetros</h3>
+                <span class="close-modal" onclick="closeAdminSettings()">&times;</span>
+            </div>
+            <hr style="margin-bottom:20px; border:0; border-top:1px solid var(--border-color);">
+            
+            <div class="form-group">
+                <label for="input-admin-email">Correo Electrónico de Recepción de Gastos (Administrativa):</label>
+                <input type="email" id="input-admin-email" value="administracion@elevia.es">
+            </div>
+            
+            <div style="background:#f8fafc; padding:15px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:20px;">
+                <h4 style="font-size:13px; font-weight:700; margin-bottom:10px; text-transform:uppercase;">Alta de Técnico y Credenciales</h4>
+                <div class="form-group">
+                    <label>Nombre del Técnico:</label>
+                    <input type="text" id="new-tech-name" placeholder="Ej. Alejandro Gómez">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña del Sistema:</label>
+                    <input type="password" id="new-tech-pass" placeholder="••••••••">
+                </div>
+                <button type="button" class="btn-primary" style="padding:10px; font-size:12px; width:auto;" onclick="saveNewTechnician()">➕ Registrar Técnico en Sistema</button>
+            </div>
+
+            <button type="button" class="btn-primary" onclick="saveGeneralSettings()">Guardar Parámetros Generales</button>
+        </div>
+    </div>
+
     <script>
+        // Configuración de variables del sistema en caliente
+        let currentAdminEmail = "administracion@elevia.es";
+        
         function addRow(tableId, inputClass) {
             const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
             const newRow = table.rows[0].cloneNode(true);
             const inputs = newRow.getElementsByTagName('input');
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = '';
-            }
+            for (let i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
             table.appendChild(newRow);
             bindEvents();
         }
@@ -652,9 +659,7 @@
             const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
             const newRow = table.rows[0].cloneNode(true);
             const inputs = newRow.getElementsByTagName('input');
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = '';
-            }
+            for (let i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
             const preview = newRow.querySelector('.image-preview-container');
             if(preview) preview.classList.add('hidden');
             table.appendChild(newRow);
@@ -669,6 +674,7 @@
                 reader.onload = function(e) {
                     previewImg.src = e.target.result;
                     previewContainer.classList.remove('hidden');
+                    syncPreview();
                 }
                 reader.readAsDataURL(input.files[0]);
             }
@@ -676,7 +682,6 @@
 
         function calculateTotals() {
             let totalFuel = 0, totalMaterials = 0, totalDietas = 0, totalParking = 0;
-
             document.querySelectorAll('.fuel-total').forEach(i => totalFuel += parseFloat(i.value) || 0);
             document.querySelectorAll('.materials-total').forEach(i => totalMaterials += parseFloat(i.value) || 0);
             document.querySelectorAll('.dietas-total').forEach(i => totalDietas += parseFloat(i.value) || 0);
@@ -689,36 +694,125 @@
 
             const total = totalFuel + totalMaterials + totalDietas + totalParking;
             document.getElementById('grand-total').innerText = total.toFixed(2) + ' €';
+            document.getElementById('preview-total-txt').innerText = 'TOTAL A REEMBOLSAR: ' + total.toFixed(2) + ' €';
+        }
+
+        // Sincroniza dinámicamente los campos en el pantallazo de visualización del técnico
+        function syncPreview() {
+            calculateTotals();
+            const worker = document.getElementById('worker-name-display').value;
+            const date = document.getElementById('report-date').value || '-';
+            document.getElementById('preview-meta-txt').innerText = `Fecha: ${date} | Remitente: ${worker}`;
+            
+            let lines = [];
+            document.querySelectorAll('#view-tecnico table tbody tr').forEach(row => {
+                const inputs = row.querySelectorAll('input[type="text"]');
+                const amountInput = row.querySelector('.amount-input');
+                if (amountInput && amountInput.value) {
+                    const concept = inputs[0] ? inputs[0].value || 'Concepto General' : 'Línea de Gasto';
+                    lines.push(`• ${concept}: <strong>${parseFloat(amountInput.value).toFixed(2)} €</strong>`);
+                }
+            });
+            
+            const linesContent = document.getElementById('preview-lines-content');
+            if(lines.length > 0) {
+                linesContent.innerHTML = lines.join('<br>');
+            } else {
+                linesContent.innerHTML = "Ninguna línea con importe registrada actualmente.";
+            }
         }
 
         function bindEvents() {
             document.querySelectorAll('.amount-input').forEach(input => {
-                input.removeEventListener('input', calculateTotals);
-                input.addEventListener('input', calculateTotals);
+                input.removeEventListener('input', syncPreview);
+                input.addEventListener('input', syncPreview);
             });
         }
 
+        // Simulación interactiva de envío por correo electrónico
+        function submitToAdmin() {
+            const totalVal = document.getElementById('grand-total').innerText;
+            alert(`📬 Envío Ejecutado:\n\nEl reporte de gastos por un importe total de ${totalVal} ha sido estructurado y enviado correctamente al correo [ ${currentAdminEmail} ] de la administrativa corporativa.`);
+        }
+
+        // Funciones del Panel Administrativo
+        function changeStatus(techId, status) {
+            const badge = document.getElementById(`badge-${techId}`);
+            if(!badge) return;
+            badge.className = 'status-badge';
+            if(status === 'approved') {
+                badge.classList.add('status-approved');
+                badge.innerText = 'Validado';
+            } else {
+                badge.classList.add('status-rejected');
+                badge.innerText = 'Rechazado';
+            }
+        }
+
+        function viewReportPantallazo(workerName, totalAmount, concepts) {
+            const zone = document.getElementById('admin-report-preview-zone');
+            zone.classList.remove('hidden');
+            document.getElementById('admin-preview-meta').innerText = `Técnico: ${workerName} | Estado: Digitalizado por Sistema`;
+            document.getElementById('admin-preview-total').innerText = `TOTAL REVISADO: ${totalAmount} €`;
+            
+            let splitConcepts = concepts.split(', ');
+            let htmlLines = splitConcepts.map(c => `✓ Desglose verificado: <strong>${c}</strong>`).join('<br>');
+            document.getElementById('admin-preview-body').innerHTML = htmlLines;
+        }
+
+        function openAdminSettings() { document.getElementById('admin-settings-modal').classList.remove('hidden'); }
+        function closeAdminSettings() { document.getElementById('admin-settings-modal').classList.add('hidden'); }
+
+        function saveGeneralSettings() {
+            currentAdminEmail = document.getElementById('input-admin-email').value;
+            document.getElementById('admin-current-email-view').innerText = currentAdminEmail;
+            document.getElementById('remit-email-badge').innerText = currentAdminEmail;
+            closeAdminSettings();
+            alert("Parámetros actualizados con éxito.");
+        }
+
+        function saveNewTechnician() {
+            const name = document.getElementById('new-tech-name').value.trim();
+            if(!name) { alert("Introduce un nombre válido"); return; }
+            
+            // Inserción interactiva en la tabla del administrador para la simulación
+            const tbody = document.getElementById('admin-table-body');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td style="font-weight:600;">${name}</td>
+                <td>0.00 €</td><td>0.00 €</td><td>0.00 €</td><td>0.00 €</td>
+                <td style="font-weight:700; color:var(--primary-blue);">0.00 €</td>
+                <td><span class="status-badge status-pending">Nuevo</span></td>
+                <td>
+                    <button class="btn-action-small" onclick="viewReportPantallazo('${name}', '0.00', 'Sin registros históricos todavía')">🔍 Ver Pantallazo</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            document.getElementById('new-tech-name').value = '';
+            document.getElementById('new-tech-pass').value = '';
+            alert(`Técnico [ ${name} ] dado de alta correctamente con credenciales activas en el sistema.`);
+        }
+
+        // Manejo de pantallas y Login
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const user = document.getElementById('username').value.trim();
-            
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
-            
-            // Mensaje de bienvenida con nombre propio
             document.getElementById('welcome-user').innerText = `Hola, ${user} 👋`;
             
             if(user.toLowerCase() === 'admin') {
                 document.getElementById('view-admin').classList.remove('hidden');
                 document.getElementById('view-tecnico').classList.add('hidden');
-                document.getElementById('main-app-title').innerText = "Panel Admin";
-                document.getElementById('user-role-indicator').innerText = "Resumen Corporativo";
+                document.getElementById('main-app-title').innerText = "Panel de Control Gerencial";
+                document.getElementById('user-role-indicator').innerText = "Resumen Corporativo y Auditoría";
             } else {
                 document.getElementById('view-tecnico').classList.remove('hidden');
                 document.getElementById('view-admin').classList.add('hidden');
                 document.getElementById('worker-name-display').value = user;
-                document.getElementById('main-app-title').innerText = "Control de Gastos";
-                document.getElementById('user-role-indicator').innerText = "Portal Técnico Móvil";
+                document.getElementById('main-app-title').innerText = "Portal de Control de Gastos";
+                document.getElementById('user-role-indicator').innerText = "Mantenimiento y Servicios Técnicos";
+                syncPreview();
             }
         });
 
