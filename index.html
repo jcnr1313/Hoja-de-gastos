@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos de Técnicos</title>
+    <title>Control de Gastos de Técnicos e Historial Admin</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -27,7 +27,9 @@
             color: var(--text-color);
             padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
         }
 
         .container {
@@ -37,6 +39,7 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
 
         header {
@@ -51,6 +54,27 @@
             font-size: 24px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        /* Botón de cerrar sesión */
+        .btn-logout {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #e2e8f0;
+            color: #475569;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #fee2e2;
+            color: #ef4444;
         }
 
         .meta-grid {
@@ -88,6 +112,14 @@
 
         .form-group input:focus {
             border-color: var(--accent-color);
+        }
+
+        /* Bloqueo o visualización estática de usuario activo */
+        .user-badge-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-color);
+            padding: 8px 0;
         }
 
         .section-title {
@@ -155,10 +187,11 @@
             background: #e2e8f0;
             border-radius: 6px;
             display: flex;
-            justify-content: flex-end;
+            justify-flex-end;
             font-size: 18px;
             font-weight: bold;
             color: var(--primary-color);
+            justify-content: flex-end;
         }
 
         .actions {
@@ -183,22 +216,56 @@
             background-color: #16a34a;
         }
 
-        .btn-submit:active {
-            transform: scale(0.98);
+        /* --- ESTILOS PANEL DE ADMINISTRACIÓN --- */
+        .admin-panel {
+            border-top: 4px solid #e2e8f0;
+            background: #ffffff;
         }
+
+        .admin-header {
+            color: #7f8c8d;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pendiente { background-color: #fef08a; color: #854d0e; }
+        .status-aprobado { background-color: #bbf7d0; color: #166534; }
+        .status-rechazado { background-color: #fecaca; color: #991b1b; }
+
+        .btn-status-aprove { background-color: #22c55e; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:5px;}
+        .btn-status-reject { background-color: #ef4444; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:5px;}
+        .btn-clear-row { background-color: #64748b; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; }
+        
+        .btn-status-aprove:hover { background-color: #16a34a; }
+        .btn-status-reject:hover { background-color: #dc2626; }
+        .btn-clear-row:hover { background-color: #475569; }
+
     </style>
 </head>
 <body>
 
 <div class="container" id="hoja-gastos-container">
+    
+    <button class="btn-logout action-column" onclick="cerrarSesion()">Cerrar Sesión ↻</button>
+
     <header>
         <h1>Hoja de Control de Gastos</h1>
     </header>
 
     <div class="meta-grid">
         <div class="form-group">
-            <label for="tecnico">Nombre del Técnico</label>
-            <input type="text" id="tecnico" placeholder="Ej. Juan Carlos">
+            <label>Nombre del Técnico</label>
+            <div id="tecnico-display" class="user-badge-display">Cargando técnico...</div>
         </div>
         <div class="form-group">
             <label for="fecha">Fecha del Informe</label>
@@ -268,19 +335,69 @@
     </div>
 
     <div class="actions action-column">
-        <button class="btn-submit" onclick="generarYCompartirPDF()">Generar y Enviar PDF</button>
+        <button class="btn-submit" onclick="generarYCompartirPDF()">Generar, Guardar y Enviar PDF</button>
     </div>
 </div>
 
-<script>
-    // Inicializar el campo de la fecha con el día actual por defecto
-    document.getElementById('fecha').valueAsDate = new Date();
 
-    // Lógica para añadir dinámicamente filas a las tablas
+<div class="container admin-panel">
+    <div class="admin-header">Panel de Administración: Control de Estados</div>
+    <table id="tabla-admin-registro">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Técnico</th>
+                <th>Total (€)</th>
+                <th>Estado</th>
+                <th>Acciones de Gestión</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpo-tabla-admin">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // Variables globales
+    let nombreUsuarioFijado = "";
+
+    // Lógica al arrancar la página
+    window.onload = function() {
+        document.getElementById('fecha').valueAsDate = new Date();
+        comprobarIdentidadUsuario();
+        actualizarTablaAdmin();
+    };
+
+    // FUNCIÓN DE CONTROL DE SESIÓN / IDENTIDAD
+    function comprobarIdentidadUsuario() {
+        let usuarioGuardado = localStorage.getItem('tecnicoActivo');
+        
+        if (!usuarioGuardado) {
+            // Si no hay usuario en memoria, se lo solicita en un bucle hasta que ponga algo
+            let nombre = "";
+            while (!nombre || nombre.trim() === "") {
+                nombre = prompt("Por favor, introduce tu Nombre y Apellidos para iniciar sesión en la Hoja de Gastos:");
+            }
+            localStorage.setItem('tecnicoActivo', nombre.trim());
+            usuarioGuardado = nombre.trim();
+        }
+        
+        nombreUsuarioFijado = usuarioGuardado;
+        document.getElementById('tecnico-display').innerHTML = `<strong>${nombreUsuarioFijado}</strong>`;
+    }
+
+    // BOTÓN DE CERRAR SESIÓN
+    function cerrarSesion() {
+        if (confirm("¿Estás seguro de que deseas cerrar sesión? Se borrará tu usuario recordado en este dispositivo.")) {
+            localStorage.removeItem('tecnicoActivo');
+            // Recargamos la página para que vuelva a pedir el nombre limpio
+            location.reload();
+        }
+    }
+
     function agregarFila(idTabla) {
         const tabla = document.getElementById(idTabla).getElementsByTagName('tbody')[0];
         const nuevaFila = tabla.insertRow();
-
         const celdaConcepto = nuevaFila.insertCell(0);
         const celdaImporte = nuevaFila.insertCell(1);
         const celdaAccion = nuevaFila.insertCell(2);
@@ -291,40 +408,96 @@
         celdaAccion.className = 'action-column';
     }
 
-    // Lógica para eliminar una fila de la tabla
     function eliminarFila(boton) {
         const fila = boton.parentNode.parentNode;
         fila.parentNode.removeChild(fila);
         calcularTotales();
     }
 
-    // Calcular el sumatorio total en tiempo real
     function calcularTotales() {
         const montos = document.querySelectorAll('.monto');
         let total = 0;
         montos.forEach(input => {
             const valor = parseFloat(input.value);
-            if (!isNaN(valor)) {
-                total += valor;
-            }
+            if (!isNaN(valor)) total += valor;
         });
         document.getElementById('total-general').innerText = total.toFixed(2);
     }
 
-    // Función principal de PDF y Envío Nativo
+    function guardarEnHistorialAdmin(nombre, fecha, total) {
+        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
+        const nuevoRegistro = {
+            id: Date.now(),
+            fecha: fecha,
+            tecnico: nombre,
+            total: total,
+            estado: 'pendiente'
+        };
+        historial.push(nuevoRegistro);
+        localStorage.setItem('historialGastos', JSON.stringify(historial));
+        actualizarTablaAdmin();
+    }
+
+    function actualizarTablaAdmin() {
+        const cuerpo = document.getElementById('cuerpo-tabla-admin');
+        cuerpo.innerHTML = '';
+        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
+
+        if(historial.length === 0) {
+            cuerpo.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No hay registros de gastos pendientes de revisión.</td></tr>';
+            return;
+        }
+
+        historial.forEach(registro => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${registro.fecha}</td>
+                <td><strong>${registro.tecnico}</strong></td>
+                <td>${registro.total} €</td>
+                <td><span class="status-badge status-${registro.estado}">${registro.estado}</span></td>
+                <td>
+                    <button class="btn-status-aprove" onclick="cambiarEstado(${registro.id}, 'aprobado')">Aprobar</button>
+                    <button class="btn-status-reject" onclick="cambiarEstado(${registro.id}, 'rechazado')">Rechazar</button>
+                    <button class="btn-clear-row" onclick="borrarRegistroAdmin(${registro.id})">Desaparecer / Borrar</button>
+                </td>
+            `;
+            cuerpo.appendChild(fila);
+        });
+    }
+
+    function cambiarEstado(id, nuevoEstado) {
+        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
+        historial = historial.map(reg => reg.id === id ? { ...reg, estado: nuevoEstado } : reg);
+        localStorage.setItem('historialGastos', JSON.stringify(historial));
+        actualizarTablaAdmin();
+    }
+
+    function borrarRegistroAdmin(id) {
+        if(confirm('¿Seguro que quieres eliminar y hacer desaparecer este gasto de la lista?')) {
+            let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
+            historial = historial.filter(reg => reg.id !== id);
+            localStorage.setItem('historialGastos', JSON.stringify(historial));
+            actualizarTablaAdmin();
+        }
+    }
+
+    // Generación de PDF interactivo con el nombre personalizado solicitado
     function generarYCompartirPDF() {
         const elemento = document.getElementById('hoja-gastos-container');
-        const nombreTecnico = document.getElementById('tecnico').value.trim() || 'Tecnico';
         const fecha = document.getElementById('fecha').value || 'Fecha';
+        const total = document.getElementById('total-general').innerText;
         
-        // Formatear un nombre único para el fichero PDF sin espacios problemáticos
-        const nombreArchivo = `Gasto_${nombreTecnico.replace(/\s+/g, '_')}_${fecha}.pdf`;
+        // REQUISITO AJUSTADO: El nombre de archivo ahora es estrictamente "Gasto_[NombreUsuario].pdf"
+        const nombreLimpio = nombreUsuarioFijado.replace(/\s+/g, '_');
+        const nombreArchivo = `Gasto_${nombreLimpio}.pdf`;
 
-        // 1. Ocultar de forma limpia los botones y columnas de acción para que el PDF quede profesional
+        // Registrar en la administración antes de procesar el renderizado visual
+        guardarEnHistorialAdmin(nombreUsuarioFijado, fecha, total);
+
+        // Ocultar botones y acciones antes de la captura del PDF
         const elementosAOcultar = document.querySelectorAll('.action-column');
         elementosAOcultar.forEach(el => el.style.visibility = 'hidden');
 
-        // 2. Parámetros de configuración del renderizador PDF
         const opciones = {
             margin:       12,
             filename:     nombreArchivo,
@@ -333,26 +506,22 @@
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // 3. Compilar el HTML a PDF
         html2pdf().set(opciones).from(elemento).toPdf().get('pdf').then(function (pdf) {
-            // Restaurar los botones en la interfaz de pantalla inmediatamente tras la foto
+            // Restaurar los botones interactivos en la vista de pantalla
             elementosAOcultar.forEach(el => el.style.visibility = 'visible');
             
             const pdfBlob = pdf.output('blob');
             const archivo = new File([pdfBlob], nombreArchivo, { type: "application/pdf" });
 
-            // 4. Intentar abrir el menú "Compartir" del smartphone (WhatsApp, Mail, etc.)
             if (navigator.share && navigator.canShare({ files: [archivo] })) {
                 navigator.share({
                     files: [archivo],
-                    title: `Hoja de Gastos - ${nombreTecnico}`,
-                    text: `Adjunto reporte de gastos de ${nombreTecnico}.`
-                })
-                .catch((error) => console.log('Envío cancelado o error en el canal:', error));
+                    title: `Hoja de Gastos - ${nombreUsuarioFijado}`,
+                    text: `Adjunto reporte de gastos de ${nombreUsuarioFijado}.`
+                }).catch((err) => console.log('Envío cancelado:', err));
             } else {
-                // Comportamiento de respaldo para ordenadores de escritorio: descarga directa
                 pdf.save(nombreArchivo);
-                alert('Fichero PDF generado. Al estar en ordenador, se ha descargado de forma directa en tu equipo.');
+                alert('PDF generado y descargado con éxito.');
             }
         });
     }
