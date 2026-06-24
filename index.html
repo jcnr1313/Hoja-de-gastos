@@ -39,31 +39,26 @@
 
         .hidden { display: none !important; }
 
-        /* --- LOGO VECTORIAL ESTILIZADO --- */
-        .logo-svg {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-weight: 800;
-            font-size: 22px;
-            letter-spacing: -0.5px;
+        /* --- LOGO CORPORATIVO OFICIAL --- */
+        .brand-logo {
+            display: block;
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+            margin: 0 auto;
         }
-        .logo-svg.dark {
-            color: var(--accent-dark);
+        
+        .header-logo {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+            filter: brightness(0) invert(1); /* Optimizado para fondo oscuro de la cabecera */
         }
-        .logo-icon {
-            background: linear-gradient(135deg, #d7ccc8 0%, var(--accent-walnut) 100%);
-            width: 32px;
+
+        .doc-logo {
             height: 32px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 900;
-            font-size: 16px;
-            box-shadow: var(--shadow-sm);
+            width: auto;
+            object-fit: contain;
         }
 
         /* --- PANTALLA DE LOGIN --- */
@@ -86,8 +81,7 @@
             text-align: center;
         }
 
-        .login-card .logo-svg {
-            justify-content: center;
+        .login-card .logo-wrapper {
             margin-bottom: 24px;
         }
 
@@ -203,7 +197,7 @@
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 20px;
         }
 
         .app-title h1 {
@@ -374,8 +368,8 @@
     <!-- PANTALLA DE LOGIN -->
     <div id="login-screen" class="login-container">
         <div class="login-card card">
-            <div class="logo-svg dark">
-                <div class="logo-icon">E</div><span>ELEVIA</span>
+            <div class="logo-wrapper">
+                <img src="image_2.png" alt="Elevia" class="brand-logo">
             </div>
             <h2>Control de Acceso</h2>
             <p>Introduce tus credenciales operativas</p>
@@ -399,9 +393,7 @@
         <header class="app-header">
             <div class="header-container">
                 <div class="logo-container">
-                    <div class="logo-svg">
-                        <div class="logo-icon">E</div><span>ELEVIA</span>
-                    </div>
+                    <img src="image_2.png" alt="Elevia" class="header-logo">
                     <div class="app-title">
                         <h1 id="main-app-title">Control de Gastos</h1>
                         <p id="user-role-indicator">Plataforma Operativa</p>
@@ -555,8 +547,8 @@
             <!-- LIVE PANTALLAZO DOCUMENTO TÉCNICO -->
             <div class="preview-document-container" id="tech-document-preview">
                 <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
-                    <div class="logo-svg dark" style="font-size:18px;">
-                        <div class="logo-icon" style="width:26px; height:26px; font-size:12px;">E</div><span>ELEVIA</span>
+                    <div>
+                        <img src="image_2.png" alt="Elevia" class="doc-logo">
                     </div>
                     <div style="text-align:right;">
                         <h3 style="font-size:16px; margin:0;">REPORTE OFICIAL DE GASTOS</h3>
@@ -637,8 +629,8 @@
                 <h2>Pantallazo del Informe Digital (Visualización de Auditoría)</h2>
                 <div class="preview-document-container" style="border-color: var(--accent-walnut);">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:20px;">
-                        <div class="logo-svg dark" style="font-size:18px;">
-                            <div class="logo-icon" style="width:26px; height:26px; font-size:12px;">E</div><span>ELEVIA</span>
+                        <div>
+                            <img src="image_2.png" alt="Elevia" class="doc-logo">
                         </div>
                         <div style="text-align:right;">
                             <h3 style="font-size:16px; margin:0;">INFORME RECEPCIONADO</h3>
