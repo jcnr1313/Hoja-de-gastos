@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
-    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -268,7 +267,6 @@
 
     <div class="container">
 
-        <!-- VISTA LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -287,7 +285,6 @@
             </div>
         </div>
 
-        <!-- VISTA PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="margin:0;">Mi Desglose Mensual</h3>
@@ -337,7 +334,6 @@
                 <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar Gasto</button>
                 <button class="btn btn-danger" id="btnCancelEdit" style="display:none; margin-top:8px;" onclick="cancelExpenseEdit()">Cancelar Edición</button>
                 
-                <!-- Botón dinámico de envío opcional a WhatsApp -->
                 <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp al Admin</button>
             </div>
 
@@ -347,7 +343,6 @@
             </div>
         </div>
 
-        <!-- VISTA PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
             <h3>Resumen Global (Empresa)</h3>
             <div class="grid-stats">
@@ -367,7 +362,6 @@
         </div>
     </div>
 
-    <!-- MODAL PREVISUALIZADOR HOJA PDF REAL -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color:white; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
@@ -396,7 +390,6 @@
         </div>
     </div>
 
-    <!-- FIREBASE MÓDULOS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -477,19 +470,46 @@
             document.getElementById(viewId).classList.add('active');
         }
 
+        // FUNCIÓN MEJORADA: Comprime la foto automáticamente a resoluciones móviles optimizadas
         window.handleTicketUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                selectedTicketBase64 = e.target.result;
-                document.getElementById('ticketPreview').src = selectedTicketBase64;
-                document.getElementById('ticketPreview').style.display = 'block';
-                document.getElementById('cameraPrompt').style.display = 'none';
-                if(!editingExpenseId) {
-                    const today = new Date();
-                    document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
-                }
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    
+                    // Definimos una anchura máxima de 1024px (calidad ideal para ver texto de ticket)
+                    let width = img.width;
+                    let height = img.height;
+                    const maxWidth = 1024;
+                    
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convertimos la imagen reduciendo la calidad al 60% (formato jpeg pesa muchísimo menos que png o fotos raw)
+                    selectedTicketBase64 = canvas.toDataURL('image/jpeg', 0.60);
+                    
+                    document.getElementById('ticketPreview').src = selectedTicketBase64;
+                    document.getElementById('ticketPreview').style.display = 'block';
+                    document.getElementById('cameraPrompt').style.display = 'none';
+
+                    if(!editingExpenseId) {
+                        const today = new Date();
+                        document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+                    }
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         };
@@ -525,7 +545,7 @@
                     
                     alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
                 }
-            } catch (e) { alert('Error de red al guardar.'); }
+            } catch (e) { alert('Error al guardar datos: ' + e.message); }
         };
 
         window.startExpenseEdit = function(id) {
