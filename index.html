@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
-    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -186,7 +185,7 @@
         }
         .part-item:last-child { border-bottom: none; }
 
-        .btn-delete-expense, .btn-delete-user {
+        .btn-delete-expense {
             background: none;
             border: none;
             color: var(--danger);
@@ -198,19 +197,10 @@
             margin-left: 8px;
             vertical-align: middle;
         }
-        .btn-delete-expense:hover, .btn-delete-user:hover {
+        .btn-delete-expense:hover {
             background: #fdf2f2;
         }
 
-        .user-row {
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            background: #fafafa;
-        }
-
-        /* MODAL CON CAPTURA VISUAL COMPLETA */
         .modal {
             display: none;
             position: fixed;
@@ -234,7 +224,6 @@
             box-shadow: 0 5px 25px rgba(0,0,0,0.3);
         }
 
-        /* Caja contenedora que actúa como captura de pantalla de lo que se envía */
         .screenshot-preview-container {
             background: white;
             border: 1px solid #dddfe2;
@@ -298,7 +287,6 @@
 </head>
 <body>
 
-    <!-- NAVBAR DINÁMICA -->
     <div class="navbar">
         <img src="IMG_5467.jpeg" alt="Elevia Logo" onerror="this.style.display='none'; document.getElementById('altBrandText').style.display='block';">
         <span id="altBrandText" style="display:none; font-weight:bold; color:var(--primary); font-size:1.4rem;">elevia</span>
@@ -310,7 +298,6 @@
 
     <div class="container">
 
-        <!-- VISTA 1: LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -318,18 +305,17 @@
                 </div>
                 <h2 style="text-align: center; margin-top: 0; font-size: 1.3rem; color: var(--primary);">Control de Gastos</h2>
                 <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" id="loginUser" class="form-control" placeholder="Introduce tu usuario">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginUser" class="form-control" placeholder="ejemplo@elevia.com">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" id="loginPass" class="form-control" placeholder="••••">
+                    <input type="password" id="loginPass" class="form-control" placeholder="••••••••">
                 </div>
-                <button class="btn btn-accent" onclick="handleLogin()">Entrar</button>
+                <button class="btn btn-accent" id="btnLogin" onclick="handleLogin()">Entrar</button>
             </div>
         </div>
 
-        <!-- VISTA 2: PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <h3>Mi Desglose Mensual</h3>
             <div class="grid-stats">
@@ -342,7 +328,6 @@
             <div class="card">
                 <h3 style="margin-top:0;">Nuevo Ticket / Gasto</h3>
                 
-                <!-- Captura de Cámara/Galería -->
                 <div class="camera-zone" onclick="document.getElementById('fileInput').click()">
                     <span id="cameraPrompt">📸 Haz foto al ticket o súbelo de la galería</span>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleTicketUpload(event)">
@@ -375,7 +360,7 @@
                     <input type="text" id="expenseLocation" class="form-control" placeholder="Ej. Calle San Roque / Hospital Central">
                 </div>
 
-                <button class="btn btn-accent" onclick="saveExpense()">Guardar e Incluir en Parte</button>
+                <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar e Incluir en Parte</button>
             </div>
 
             <div class="card">
@@ -384,108 +369,133 @@
             </div>
         </div>
 
-        <!-- VISTA 3: PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
-            <div class="card">
-                <h3 style="margin-top:0;">Gestión de Usuarios</h3>
-                <div id="adminUserList"></div>
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-                <h4>Añadir / Modificar Usuario</h4>
-                <div class="form-group">
-                    <input type="text" id="newUsername" class="form-control" placeholder="Usuario" style="margin-bottom:8px;">
-                    <input type="password" id="newUserPass" class="form-control" placeholder="Contraseña">
-                </div>
-                <button class="btn btn-accent" onclick="createOrUpdateUser()">Guardar Usuario</button>
-            </div>
-
-            <h3>Revisión de Tickets y Partes</h3>
+            <h3>Revisión de Tickets y Partes (Todos los Técnicos)</h3>
             <div id="adminExpensesReview"></div>
         </div>
 
     </div>
 
-    <!-- MODAL CON CAPTURA DE PANTALLA REAL DE ENVÍO + ARCHIVOS ADJUNTOS -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">Captura de pantalla del envío</h3>
             
-            <!-- Zona de simulación visual completa -->
             <div class="screenshot-preview-container">
                 <div class="screenshot-header">
                     <span>Previsualización de Salida</span>
                     <span>PDF / WhatsApp Comprobado</span>
                 </div>
                 
-                <!-- Burbuja con el formato de datos plano que se manda -->
                 <div class="whatsapp-bubble-mock" id="whatsappTextPreview"></div>
                 
-                <!-- Contenedor con la foto/s del ticket adjunto visibles en la captura -->
                 <div style="font-weight: bold; font-size: 0.8rem; color: #555; margin-bottom: 5px;">Archivos adjuntos (Tickets en PDF):</div>
                 <div class="ticket-gallery-preview">
                     <img id="modalTicketImg" src="" alt="Ticket Vinculado">
                 </div>
             </div>
 
-            <!-- Botonera inferior dinámica -->
             <div style="display:flex; flex-direction:column; gap:8px;" id="modalActionButtons"></div>
         </div>
     </div>
 
-    <script>
-        // --- BASE DE DATOS LOCAL ---
-        if(!localStorage.getItem('gas_users')) {
-            const defaultUsers = {
-                'admin': { pass: 'admin123', role: 'admin' },
-                'juan': { pass: '1234', role: 'tecnico' }
-            };
-            localStorage.setItem('gas_users', JSON.stringify(defaultUsers));
-        }
-        if(!localStorage.getItem('gas_items')) {
-            localStorage.setItem('gas_items', JSON.stringify([]));
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            where, 
+            onSnapshot, 
+            doc, 
+            updateDoc, 
+            deleteDoc,
+            orderBy
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        let currentUser = null;
+        // Configuración de tu App proveída por ti
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIwbYlPDQ8shXazC_8lENSR8K1C3fUDjM",
+            authDomain: "eleviagastos.firebaseapp.com",
+            projectId: "eleviagastos",
+            storageBucket: "eleviagastos.firebasestorage.app",
+            messagingSenderId: "741879899639",
+            appId: "1:741879899639:web:e9ddc3f9c234506997baf2",
+            measurementId: "G-XMSFXYM2C7"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserData = null;
         let selectedTicketBase64 = null;
-        let activeViewExpenseId = null;
+        let unsubscribeExpenses = null;
+        let cachedItems = []; // Almacén global temporal para alimentar jsPDF
 
-        // --- LOGIN ---
-        function handleLogin() {
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value;
-            const users = JSON.parse(localStorage.getItem('gas_users'));
-
-            if(users[u] && users[u].pass === p) {
-                currentUser = { username: u, role: users[u].role };
-                document.getElementById('navUserInfo').style.display = 'flex';
-                document.getElementById('navUserTag').textContent = u.toUpperCase();
+        // --- MANEJO DE AUTENTICACIÓN GLOBAL ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Determinamos el rol según el email (si es admin@elevia.com o contiene admin, se le asigna rol admin)
+                const role = (user.email.includes('admin')) ? 'admin' : 'tecnico';
+                currentUserData = { uid: user.uid, email: user.email, role: role };
                 
-                if(currentUser.role === 'admin') {
+                document.getElementById('navUserInfo').style.display = 'flex';
+                document.getElementById('navUserTag').textContent = user.email.split('@')[0].toUpperCase();
+                
+                if(role === 'admin') {
                     switchView('viewAdmin');
-                    loadAdminData();
+                    listenAllExpenses();
                 } else {
                     switchView('viewTecnico');
-                    loadTecnicoData();
+                    listenTecnicoExpenses(user.email);
                 }
             } else {
-                alert('Credenciales incorrectas');
+                currentUserData = null;
+                document.getElementById('navUserInfo').style.display = 'none';
+                switchView('viewLogin');
+                if (unsubscribeExpenses) unsubscribeExpenses();
             }
-        }
+        });
 
-        function logout() {
-            currentUser = null;
-            document.getElementById('navUserInfo').style.display = 'none';
-            document.getElementById('loginUser').value = '';
-            document.getElementById('loginPass').value = '';
-            switchView('viewLogin');
-        }
+        // --- ACCIONES ACCESIBLES GLOBALMENTE ---
+        window.handleLogin = async function() {
+            const email = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            const btn = document.getElementById('btnLogin');
+
+            if(!email || !pass) return alert('Por favor, rellena todos los campos.');
+
+            try {
+                btn.disabled = true;
+                btn.textContent = "Entrando...";
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                alert('Error al iniciar sesión: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Entrar";
+            }
+        };
+
+        window.logout = function() {
+            signOut(auth);
+        };
 
         function switchView(viewId) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
         }
 
-        // --- SIMULACIÓN CÁMARA ---
-        function handleTicketUpload(event) {
+        // --- CAPTURA DE CÁMARA (BASE64) ---
+        window.handleTicketUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -496,7 +506,6 @@
                 document.getElementById('ticketPreview').style.display = 'block';
                 document.getElementById('cameraPrompt').style.display = 'none';
 
-                // IMPORTANTE: Dejamos el importe vacío para evitar lecturas OCR erróneas.
                 document.getElementById('expenseAmount').value = '';
                 document.getElementById('expenseAmount').focus();
 
@@ -505,207 +514,169 @@
                 document.getElementById('expenseDate').value = dateStr;
             };
             reader.readAsDataURL(file);
-        }
+        };
 
-        // --- GUARDAR GASTO ---
-        function saveExpense() {
+        // --- ACCIONES FIRESTORE ---
+        window.saveExpense = async function() {
             const concept = document.getElementById('expenseConcept').value;
             const amount = parseFloat(document.getElementById('expenseAmount').value);
             const date = document.getElementById('expenseDate').value.trim();
             const location = document.getElementById('expenseLocation').value.trim();
+            const btn = document.getElementById('btnSaveExpense');
 
             if(!amount || !date || !location || !selectedTicketBase64) {
                 alert('Por favor, haz la foto al ticket y rellena la dirección/destino.');
                 return;
             }
 
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const newItem = {
-                id: Date.now(),
-                user: currentUser.username,
-                concept,
-                amount,
-                date,
-                location,
-                image: selectedTicketBase64,
-                approved: false
-            };
+            try {
+                btn.disabled = true;
+                btn.textContent = "Guardando en la nube...";
 
-            items.push(newItem);
-            localStorage.setItem('gas_items', JSON.stringify(items));
+                await addDoc(collection(db, "gastos"), {
+                    user: currentUserData.email,
+                    concept,
+                    amount,
+                    date,
+                    location,
+                    image: selectedTicketBase64,
+                    approved: false,
+                    createdAt: Date.now()
+                });
 
-            document.getElementById('expenseAmount').value = '';
-            document.getElementById('expenseDate').value = '';
-            document.getElementById('expenseLocation').value = '';
-            document.getElementById('ticketPreview').style.display = 'none';
-            document.getElementById('cameraPrompt').style.display = 'block';
-            selectedTicketBase64 = null;
+                document.getElementById('expenseAmount').value = '';
+                document.getElementById('expenseDate').value = '';
+                document.getElementById('expenseLocation').value = '';
+                document.getElementById('ticketPreview').style.display = 'none';
+                document.getElementById('cameraPrompt').style.display = 'block';
+                selectedTicketBase64 = null;
+                alert('Gasto guardado en Firebase correctamente.');
 
-            loadTecnicoData();
-            alert('Gasto guardado correctamente.');
-        }
+            } catch (error) {
+                alert("Error al subir a Firebase: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Guardar e Incluir en Parte";
+            }
+        };
 
-        function loadTecnicoData() {
-            const items = JSON.parse(localStorage.getItem('gas_items')).filter(i => i.user === currentUser.username);
-            let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+        // ESCUCHA EN TIEMPO REAL: TÉCNICOS
+        function listenTecnicoExpenses(email) {
+            const q = query(collection(db, "gastos"), where("user", "==", email), orderBy("createdAt", "desc"));
             
-            const listContainer = document.getElementById('tecnicoExpensesList');
-            listContainer.innerHTML = '';
+            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+                let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+                const listContainer = document.getElementById('tecnicoExpensesList');
+                listContainer.innerHTML = '';
+                cachedItems = [];
 
-            if(items.length === 0) {
-                listContainer.innerHTML = '<p style="color:#666; text-align:center;">No tienes gastos cargados.</p>';
-            }
-
-            items.forEach(item => {
-                totals[item.concept] += item.amount;
-
-                const div = document.createElement('div');
-                div.className = 'part-item';
-                
-                const deleteButtonHtml = !item.approved 
-                    ? `<button class="btn-delete-expense" onclick="deleteExpense(${item.id})" title="Cancelar Gasto">🗑️</button>` 
-                    : '';
-
-                div.innerHTML = `
-                    <div>
-                        <strong>${item.concept}</strong> - <span style="font-size:0.9rem; color:#555;">${item.location}</span><br>
-                        <small style="color:#888;">${item.date}</small>
-                    </div>
-                    <div style="text-align:right;">
-                        <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span>
-                        ${deleteButtonHtml}<br>
-                        <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}" style="cursor:pointer; display:inline-block; margin-top:5px;" onclick="openPreviewModal(${item.id})">
-                            ${item.approved ? 'Aprobado' : 'Pendiente'} 🔍
-                        </span>
-                    </div>
-                `;
-                listContainer.appendChild(div);
-            });
-
-            document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
-            document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
-            document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
-            document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
-        }
-
-        function deleteExpense(id) {
-            if (confirm('¿Estás seguro de que deseas cancelar y eliminar este gasto?')) {
-                let items = JSON.parse(localStorage.getItem('gas_items'));
-                items = items.filter(item => item.id !== id);
-                localStorage.setItem('gas_items', JSON.stringify(items));
-                
-                if (currentUser.role === 'admin') {
-                    loadAdminData();
-                } else {
-                    loadTecnicoData();
+                if(snapshot.empty) {
+                    listContainer.innerHTML = '<p style="color:#666; text-align:center;">No tienes gastos cargados.</p>';
                 }
-            }
-        }
 
-        function loadAdminData() {
-            const users = JSON.parse(localStorage.getItem('gas_users'));
-            const userListDiv = document.getElementById('adminUserList');
-            userListDiv.innerHTML = '';
+                snapshot.forEach((docSnap) => {
+                    const item = { id: docSnap.id, ...docSnap.data() };
+                    cachedItems.push(item);
+                    totals[item.concept] += item.amount;
 
-            Object.keys(users).forEach(u => {
-                const div = document.createElement('div');
-                div.className = 'user-row';
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.style.alignItems = 'center';
+                    const div = document.createElement('div');
+                    div.className = 'part-item';
+                    
+                    const deleteButtonHtml = !item.approved 
+                        ? `<button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" title="Cancelar Gasto">🗑️</button>` 
+                        : '';
 
-                const isSelf = currentUser && currentUser.username === u;
-                const deleteUserBtn = !isSelf 
-                    ? `<button class="btn-delete-user" onclick="deleteUser('${u}')" title="Eliminar Usuario">🗑️</button>` 
-                    : '<span style="font-size:0.8rem; color:#888; font-style:italic; margin-left:8px;">(Tú)</span>';
-
-                div.innerHTML = `
-                    <span><strong>${u}</strong> (${users[u].role})</span>
-                    <div>
-                        <button class="logout-btn" style="background:var(--primary);" onclick="prepareUserEdit('${u}')">Editar</button>
-                        ${deleteUserBtn}
-                    </div>
-                `;
-                userListDiv.appendChild(div);
-            });
-
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const reviewDiv = document.getElementById('adminExpensesReview');
-            reviewDiv.innerHTML = '';
-
-            if(items.length === 0) {
-                reviewDiv.innerHTML = '<p style="color:#666;">No hay gastos cargados en el sistema.</p>';
-            }
-
-            items.slice().reverse().forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'card';
-
-                // Verificamos si el usuario del ticket sigue existiendo en el sistema
-                const userExists = users.hasOwnProperty(item.user);
-                const displayUser = userExists 
-                    ? item.user.toUpperCase() 
-                    : `<span style="color:var(--danger); font-weight:bold;">${item.user.toUpperCase()} [USUARIO ELIMINADO]</span>`;
-
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">
-                        <span>Técnico: <strong>${displayUser}</strong></span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
-                            <button class="btn-delete-expense" onclick="deleteExpense(${item.id})" title="Eliminar Ticket Definitivamente" style="margin:0; padding:2px 6px;">🗑️</button>
+                    div.innerHTML = `
+                        <div>
+                            <strong>${item.concept}</strong> - <span style="font-size:0.9rem; color:#555;">${item.location}</span><br>
+                            <small style="color:#888;">${item.date}</small>
                         </div>
-                    </div>
-                    <p style="margin:5px 0;"><strong>${item.concept}</strong>: ${item.amount.toFixed(2)} €</p>
-                    <p style="margin:5px 0; font-size:0.9rem; color:#555;">📍 Destino: ${item.location}</p>
-                    <small style="color:#888;">Fecha del ticket: ${item.date}</small>
-                    <button class="btn btn-accent" style="margin-top:10px; padding:6px; font-size:0.9rem;" onclick="openPreviewModal(${item.id})">Revisar e Imprimir PDF</button>
-                `;
-                reviewDiv.appendChild(div);
+                        <div style="text-align:right;">
+                            <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span>
+                            ${deleteButtonHtml}<br>
+                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}" style="cursor:pointer; display:inline-block; margin-top:5px;" onclick="openPreviewModal('${item.id}')">
+                                ${item.approved ? 'Aprobado' : 'Pendiente'} 🔍
+                            </span>
+                        </div>
+                    `;
+                    listContainer.appendChild(div);
+                });
+
+                document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
+                document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
+                document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
+                document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
             });
         }
 
-        function deleteUser(username) {
-            if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"? Los tickets cargados por él permanecerán visibles en la sección de revisión para que puedas borrarlos manualmente.`)) {
-                const users = JSON.parse(localStorage.getItem('gas_users'));
-                if (users[username]) {
-                    delete users[username];
-                    localStorage.setItem('gas_users', JSON.stringify(users));
-                    loadAdminData();
-                    alert(`Usuario "${username}" eliminado.`);
+        // ESCUCHA EN TIEMPO REAL: ADMINISTRADOR
+        function listenAllExpenses() {
+            const q = query(collection(db, "gastos"), orderBy("createdAt", "desc"));
+            
+            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+                const reviewDiv = document.getElementById('adminExpensesReview');
+                reviewDiv.innerHTML = '';
+                cachedItems = [];
+
+                if(snapshot.empty) {
+                    reviewDiv.innerHTML = '<p style="color:#666;">No hay gastos cargados en el sistema.</p>';
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const item = { id: docSnap.id, ...docSnap.data() };
+                    cachedItems.push(item);
+
+                    const div = document.createElement('div');
+                    div.className = 'card';
+
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">
+                            <span>Técnico: <strong>${item.user.split('@')[0].toUpperCase()}</strong></span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                                <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" title="Eliminar Ticket Definitivamente" style="margin:0; padding:2px 6px;">🗑️</button>
+                            </div>
+                        </div>
+                        <p style="margin:5px 0;"><strong>${item.concept}</strong>: ${item.amount.toFixed(2)} €</p>
+                        <p style="margin:5px 0; font-size:0.9rem; color:#555;">📍 Destino: ${item.location}</p>
+                        <small style="color:#888;">Fecha del ticket: ${item.date}</small>
+                        <button class="btn btn-accent" style="margin-top:10px; padding:6px; font-size:0.9rem;" onclick="openPreviewModal('${item.id}')">Revisar e Imprimir PDF</button>
+                    `;
+                    reviewDiv.appendChild(div);
+                });
+            });
+        }
+
+        window.deleteExpense = async function(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar este gasto de Firebase?')) {
+                try {
+                    await deleteDoc(doc(db, "gastos", id));
+                    if(document.getElementById('previewModal').style.display === 'flex') closeModal();
+                } catch (error) {
+                    alert("Error al borrar: " + error.message);
                 }
             }
-        }
+        };
 
-        function prepareUserEdit(username) {
-            const users = JSON.parse(localStorage.getItem('gas_users'));
-            document.getElementById('newUsername').value = username;
-            document.getElementById('newUserPass').value = users[username].pass;
-        }
+        window.toggleApprove = async function(id, status) {
+            try {
+                await updateDoc(doc(db, "gastos", id), { approved: status });
+                closeModal();
+            } catch (error) {
+                alert("Error al actualizar el estado: " + error.message);
+            }
+        };
 
-        function createOrUpdateUser() {
-            const u = document.getElementById('newUsername').value.trim();
-            const p = document.getElementById('newUserPass').value;
-            if(!u || !p) return alert('Rellena los campos de usuario');
-
-            const users = JSON.parse(localStorage.getItem('gas_users'));
-            users[u] = { pass: p, role: u === 'admin' ? 'admin' : 'tecnico' };
-            localStorage.setItem('gas_users', JSON.stringify(users));
-
-            document.getElementById('newUsername').value = '';
-            document.getElementById('newUserPass').value = '';
-            loadAdminData();
-            alert('Usuario guardado con éxito.');
-        }
-
-        function openPreviewModal(id) {
-            activeViewExpenseId = id;
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const item = items.find(i => i.id === id);
+        // --- INTERFAZ MODAL Y COMUNICACIÓN ---
+        window.openPreviewModal = function(id) {
+            const item = cachedItems.find(i => i.id === id);
+            if(!item) return;
             
+            const shortUser = item.user.split('@')[0].toUpperCase();
             const structuredMessage = `📄 *PARTE DE GASTOS ASOCIADO*
 ----------------------------------
 • *ID Liquidación:* ${item.id}
-• *Empleado / Técnico:* ${item.user.toUpperCase()}
+• *Empleado / Técnico:* ${shortUser}
 • *Fecha Comprobante:* ${item.date}
 • *Categoría:* ${item.concept}
 • *Dirección Destino:* ${item.location}
@@ -719,15 +690,15 @@
             const actionButtons = document.getElementById('modalActionButtons');
             actionButtons.innerHTML = '';
 
-            const whatsappTextBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsAppText(${item.id})">💬 Mandar Resumen por Mensaje</button>`;
-            const whatsappFileBtn = `<button class="btn" style="background-color:#128C7E;" onclick="sharePDFAndTickets(${item.id})">📲 Compartir PDF e Informe por WhatsApp</button>`;
-            const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id}, true)">📥 Descargar Copia PDF</button>`;
+            const whatsappTextBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsAppText('${item.id}')">💬 Mandar Resumen por Mensaje</button>`;
+            const whatsappFileBtn = `<button class="btn" style="background-color:#128C7E;" onclick="sharePDFAndTickets('${item.id}')">📲 Compartir PDF e Informe por WhatsApp</button>`;
+            const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF('${item.id}', true)">📥 Descargar Copia PDF</button>`;
             const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar Previsualización</button>`;
 
-            if(currentUser.role === 'admin') {
+            if(currentUserData.role === 'admin') {
                 const approveBtn = item.approved 
-                    ? `<button class="btn btn-danger" onclick="toggleApprove(${item.id}, false)">Revocar Aprobación</button>`
-                    : `<button class="btn btn-accent" onclick="toggleApprove(${item.id}, true)">Aprobar y Guardar Gasto</button>`;
+                    ? `<button class="btn btn-danger" onclick="toggleApprove('${item.id}', false)">Revocar Aprobación</button>`
+                    : `<button class="btn btn-accent" onclick="toggleApprove('${item.id}', true)">Aprobar y Guardar Gasto</button>`;
                 
                 actionButtons.innerHTML = approveBtn + whatsappFileBtn + whatsappTextBtn + downloadBtn + closeBtn;
             } else {
@@ -735,30 +706,19 @@
             }
 
             document.getElementById('previewModal').style.display = 'flex';
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = function() {
             document.getElementById('previewModal').style.display = 'none';
-        }
+        };
 
-        function toggleApprove(id, status) {
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const idx = items.findIndex(i => i.id === id);
-            items[idx].approved = status;
-            localStorage.setItem('gas_items', JSON.stringify(items));
-            
-            closeModal();
-            loadAdminData();
-        }
-
-        function sendWhatsAppText(id) {
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const item = items.find(i => i.id === id);
-
+        window.sendWhatsAppText = function(id) {
+            const item = cachedItems.find(i => i.id === id);
+            const shortUser = item.user.split('@')[0].toUpperCase();
             const message = `*PARTE DE GASTOS - ELEVIA ELEVADORES*
 ---------------------------------------
 *ID Parte:* ${item.id}
-*Técnico:* ${item.user.toUpperCase()}
+*Técnico:* ${shortUser}
 *Fecha:* ${item.date}
 *Categoría:* ${item.concept}
 *Dirección:* ${item.location}
@@ -770,14 +730,13 @@ _Revisado y conforme por el técnico._`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
-        }
+        };
 
-        async function sharePDFAndTickets(id) {
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const item = items.find(i => i.id === id);
-            
-            const doc = buildPDFDocument(item);
-            const pdfBlob = doc.output('blob');
+        window.sharePDFAndTickets = async function(id) {
+            const item = cachedItems.find(i => i.id === id);
+            const shortUser = item.user.split('@')[0].toUpperCase();
+            const docPdf = buildPDFDocument(item);
+            const pdfBlob = docPdf.output('blob');
             const pdfFile = new File([pdfBlob], `Parte_Gasto_Elevia_${item.id}.pdf`, { type: 'application/pdf' });
             
             if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
@@ -785,49 +744,71 @@ _Revisado y conforme por el técnico._`;
                     await navigator.share({
                         files: [pdfFile],
                         title: `Parte de Gasto Elevia - ${item.id}`,
-                        text: `Adjunto el informe en PDF del gasto de tipo ${item.concept} gestionado por el técnico ${item.user.toUpperCase()}.`
+                        text: `Adjunto el informe en PDF del gasto de tipo ${item.concept} gestionado por el técnico ${shortUser}.`
                     });
                 } catch (error) {
-                    console.log('El operario canceló el envío o hubo un corte en la comunicación.');
+                    console.log('Envío cancelado.', error);
                 }
             } else {
-                alert('Tu navegador o dispositivo de escritorio no soporta la compartición directa de archivos. Se descargará el PDF automáticamente. Ábrelo y adjúntalo manualmente en WhatsApp Web.');
-                doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+                alert('Tu navegador o dispositivo no soporta compartición directa. Descargando PDF automáticamente para adjuntar manualmente.');
+                docPdf.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
             }
-        }
+        };
+
+        window.generateActualPDF = function(id, triggerDownload = true) {
+            const item = cachedItems.find(i => i.id === id);
+            if (!item) return;
+
+            const docPdf = buildPDFDocument(item);
+            if(triggerDownload) {
+                docPdf.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+            }
+        };
 
         function buildPDFDocument(item) {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const docPdf = new jsPDF();
+            const shortUser = item.user.split('@')[0].toUpperCase();
 
-            doc.setFont("Helvetica", "bold");
-            doc.setFontSize(18);
-            doc.text("PARTE DE GASTOS - ELEVIA ELEVADORES", 15, 20);
+            docPdf.setFont("Helvetica", "bold");
+            docPdf.setFontSize(18);
+            docPdf.text("PARTE DE GASTOS - ELEVIA ELEVADORES", 15, 20);
             
-            doc.setFont("Helvetica", "normal");
-            doc.setFontSize(11);
-            doc.text(`ID Liquidación: ${item.id}`, 15, 32);
-            doc.text(`Técnico Evaluador: ${item.user.toUpperCase()}`, 15, 40);
-            doc.text(`Fecha del Ticket: ${item.date}`, 15, 48);
-            doc.text(`Categoría: ${item.concept}`, 15, 56);
-            doc.text(`Destino / Dirección: ${item.location}`, 15, 64);
+            docPdf.setFont("Helvetica", "normal");
+            docPdf.setFontSize(11);
+            docPdf.text(`ID Liquidación: ${item.id}`, 15, 32);
+            docPdf.text(`Técnico Evaluador: ${shortUser}`, 15, 40);
+            docPdf.text(`Fecha del Ticket: ${item.date}`, 15, 48);
+            docPdf.text(`Categoría: ${item.concept}`, 15, 56);
+            docPdf.text(`Destino / Dirección: ${item.location}`, 15, 64);
             
-            doc.setFontSize(14);
-            doc.text(`Importe a Liquidar: ${item.amount.toFixed(2)} €`, 15, 76);
-            doc.text(`Estado: ${item.approved ? 'APROBADO' : 'PENDIENTE'}`, 15, 84);
+            docPdf.setFontSize(14);
+            docPdf.setFont("Helvetica", "bold");
+            docPdf.text(`Importe a Liquidar: ${item.amount.toFixed(2)} €`, 15, 76);
+            docPdf.text(`Estado: ${item.approved ? 'APROBADO' : 'PENDIENTE'}`, 15, 84);
 
-            doc.text("Evidencia / Ticket Adjunto:", 15, 100);
-            doc.addImage(item.image, 'JPEG', 15, 105, 120, 120);
-            return doc;
-        }
+            if (item.image) {
+                docPdf.setFontSize(12);
+                docPdf.text("Evidencia / Ticket Adjunto:", 15, 100);
+                
+                try {
+                    let format = 'JPEG';
+                    if (item.image.includes('data:image/png')) format = 'PNG';
+                    if (item.image.includes('data:image/webp')) format = 'WEBP';
 
-        function generateActualPDF(id, triggerDownload = true) {
-            const items = JSON.parse(localStorage.getItem('gas_items'));
-            const item = items.find(i => i.id === id);
-            const doc = buildPDFDocument(item);
-            if(triggerDownload) {
-                doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+                    docPdf.addImage(item.image, format, 15, 105, 140, 140, undefined, 'FAST');
+                } catch (e) {
+                    docPdf.setFont("Helvetica", "oblique");
+                    docPdf.setFontSize(10);
+                    docPdf.text("[Error al renderizar la imagen del ticket en el documento]", 15, 110);
+                }
+            } else {
+                docPdf.setFont("Helvetica", "oblique");
+                docPdf.setFontSize(11);
+                docPdf.text("No se adjuntó ninguna evidencia fotográfica para este gasto.", 15, 100);
             }
+
+            return docPdf;
         }
     </script>
 </body>
