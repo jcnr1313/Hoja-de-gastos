@@ -186,7 +186,7 @@
         }
         .part-item:last-child { border-bottom: none; }
 
-        .btn-delete-expense {
+        .btn-delete-expense, .btn-delete-user {
             background: none;
             border: none;
             color: var(--danger);
@@ -198,7 +198,7 @@
             margin-left: 8px;
             vertical-align: middle;
         }
-        .btn-delete-expense:hover {
+        .btn-delete-expense:hover, .btn-delete-user:hover {
             background: #fdf2f2;
         }
 
@@ -606,9 +606,20 @@
                 div.className = 'user-row';
                 div.style.display = 'flex';
                 div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+
+                // No permitir que el admin en sesión se borre a sí mismo por accidente
+                const isSelf = currentUser && currentUser.username === u;
+                const deleteUserBtn = !isSelf 
+                    ? `<button class="btn-delete-user" onclick="deleteUser('${u}')" title="Eliminar Usuario">🗑️</button>` 
+                    : '<span style="font-size:0.8rem; color:#888; font-style:italic; margin-left:8px;">(Tú)</span>';
+
                 div.innerHTML = `
                     <span><strong>${u}</strong> (${users[u].role})</span>
-                    <button class="logout-btn" style="background:var(--primary);" onclick="prepareUserEdit('${u}')">Editar</button>
+                    <div>
+                        <button class="logout-btn" style="background:var(--primary);" onclick="prepareUserEdit('${u}')">Editar</button>
+                        ${deleteUserBtn}
+                    </div>
                 `;
                 userListDiv.appendChild(div);
             });
@@ -636,6 +647,19 @@
                 `;
                 reviewDiv.appendChild(div);
             });
+        }
+
+        // --- FUNCIÓN PARA ELIMINAR USUARIO ---
+        function deleteUser(username) {
+            if (confirm(`¿Estás completamente seguro de que deseas eliminar al usuario "${username}"? Esta acción no se puede deshacer.`)) {
+                const users = JSON.parse(localStorage.getItem('gas_users'));
+                if (users[username]) {
+                    delete users[username];
+                    localStorage.setItem('gas_users', JSON.stringify(users));
+                    loadAdminData();
+                    alert(`Usuario "${username}" eliminado correctamente.`);
+                }
+            }
         }
 
         function prepareUserEdit(username) {
@@ -681,7 +705,6 @@
             const actionButtons = document.getElementById('modalActionButtons');
             actionButtons.innerHTML = '';
 
-            // BOTONES DINÁMICOS ACTUALIZADOS (Se incluye compartir PDF de forma nativa por Whatsapp)
             const whatsappTextBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsAppText(${item.id})">💬 Mandar Resumen por Mensaje</button>`;
             const whatsappFileBtn = `<button class="btn" style="background-color:#128C7E;" onclick="sharePDFAndTickets(${item.id})">📲 Compartir PDF e Informe por WhatsApp</button>`;
             const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id}, true)">📥 Descargar Copia PDF</button>`;
@@ -714,7 +737,6 @@
             loadAdminData();
         }
 
-        // --- ENVIAR DATOS POR TEXTO EN WHATSAPP (CLÁSICO) ---
         function sendWhatsAppText(id) {
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
@@ -736,19 +758,14 @@ _Revisado y conforme por el técnico._`;
             window.open(url, '_blank');
         }
 
-        // --- FUNCIÓN MAESTRA: COMPARTIR ARCHIVO PDF Y FOTOS ADJUNTAS ---
         async function sharePDFAndTickets(id) {
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
             
-            // 1. Generamos el PDF interno pero en formato de array binario (Blob)
             const doc = buildPDFDocument(item);
             const pdfBlob = doc.output('blob');
-            
-            // Creación del archivo físico virtual para enviar de forma nativa
             const pdfFile = new File([pdfBlob], `Parte_Gasto_Elevia_${item.id}.pdf`, { type: 'application/pdf' });
             
-            // 2. Intentamos usar la API nativa de compartición compartiendo el documento
             if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
                 try {
                     await navigator.share({
@@ -760,13 +777,11 @@ _Revisado y conforme por el técnico._`;
                     console.log('El operario canceló el envío o hubo un corte en la comunicación.');
                 }
             } else {
-                // Alternativa automática si están usando navegadores web de escritorio no preparados
                 alert('Tu navegador o dispositivo de escritorio no soporta la compartición directa de archivos. Se descargará el PDF automáticamente. Ábrelo y adjúntalo manualmente en WhatsApp Web.');
                 doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
             }
         }
 
-        // --- CONSTRUCTOR COMÚN PARA DISEÑO DEL PDF ---
         function buildPDFDocument(item) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -788,13 +803,10 @@ _Revisado y conforme por el técnico._`;
             doc.text(`Estado: ${item.approved ? 'APROBADO' : 'PENDIENTE'}`, 15, 84);
 
             doc.text("Evidencia / Ticket Adjunto:", 15, 100);
-            
-            // Inyección segura del Base64 de la foto cargada por la cámara en la parte baja del folio
             doc.addImage(item.image, 'JPEG', 15, 105, 120, 120);
             return doc;
         }
 
-        // Ejecución de la descarga manual estándar
         function generateActualPDF(id, triggerDownload = true) {
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
