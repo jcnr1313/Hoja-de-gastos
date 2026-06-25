@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
-    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -183,13 +182,12 @@
         }
         .part-item:last-child { border-bottom: none; }
 
-        .btn-delete-expense {
+        .btn-action-icon {
             background: none;
             border: none;
-            color: var(--danger);
             cursor: pointer;
             font-size: 1.1rem;
-            padding: 4px 8px;
+            padding: 4px;
         }
 
         .admin-table {
@@ -269,7 +267,6 @@
 
     <div class="container">
 
-        <!-- VISTA LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -288,7 +285,6 @@
             </div>
         </div>
 
-        <!-- VISTA PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="margin:0;">Mi Desglose Mensual</h3>
@@ -302,7 +298,7 @@
             </div>
 
             <div class="card">
-                <h3 style="margin-top:0;">Nuevo Ticket / Gasto</h3>
+                <h3 id="formTitle" style="margin-top:0;">Nuevo Ticket / Gasto</h3>
                 <div class="camera-zone" onclick="document.getElementById('fileInput').click()">
                     <span id="cameraPrompt">📸 Haz foto al ticket o súbelo de la galería</span>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleTicketUpload(event)">
@@ -336,8 +332,8 @@
                 </div>
 
                 <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar Gasto</button>
+                <button class="btn btn-danger" id="btnCancelEdit" style="display:none; margin-top:8px;" onclick="cancelExpenseEdit()">Cancelar Edición</button>
                 
-                <!-- Botón dinámico de envío opcional a WhatsApp -->
                 <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp al Admin</button>
             </div>
 
@@ -347,7 +343,6 @@
             </div>
         </div>
 
-        <!-- VISTA PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
             <h3>Resumen Global (Empresa)</h3>
             <div class="grid-stats">
@@ -367,7 +362,6 @@
         </div>
     </div>
 
-    <!-- MODAL PREVISUALIZADOR HOJA PDF REAL -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color:white; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
@@ -396,7 +390,6 @@
         </div>
     </div>
 
-    <!-- FIREBASE MÓDULOS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -424,10 +417,10 @@
         let unsubscribeExpenses = null;
         let cachedItems = []; 
         let lastWhatsAppText = ""; 
-        let isInitialLoad = true; // Control de bypass para no alertar registros viejos al cargar la página
+        let isInitialLoad = true; 
+        let editingExpenseId = null; // Variable para controlar si el técnico está editando un gasto
         const DOMINIO_INTERNO = "@elevia.com";
 
-        // Solicitar permisos de notificación nativa al arrancar la app
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
             Notification.requestPermission();
         }
@@ -487,8 +480,10 @@
                 document.getElementById('ticketPreview').src = selectedTicketBase64;
                 document.getElementById('ticketPreview').style.display = 'block';
                 document.getElementById('cameraPrompt').style.display = 'none';
-                const today = new Date();
-                document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+                if(!editingExpenseId) {
+                    const today = new Date();
+                    document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+                }
             };
             reader.readAsDataURL(file);
         };
@@ -501,22 +496,71 @@
             if(!amount || !date || !location || !selectedTicketBase64) return alert('Por favor, rellena todos los datos e incluye foto.');
 
             try {
-                await addDoc(colFS(db, "gastos"), {
-                    user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
-                });
-                
-                // Preparar mensaje automático para el botón de WhatsApp
-                lastWhatsAppText = `Hola Admin, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
-                document.getElementById('btnWhatsAppNotify').style.display = 'flex';
+                if (editingExpenseId) {
+                    // MODO ACTUALIZAR / EDITAR GASTO EXISTENTE
+                    const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await upDoc(dDoc(db, "gastos", editingExpenseId), {
+                        concept, amount, date, location, image: selectedTicketBase64
+                    });
+                    alert('Gasto actualizado correctamente.');
+                    cancelExpenseEdit();
+                } else {
+                    // MODO NUEVO GASTO
+                    await addDoc(colFS(db, "gastos"), {
+                        user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
+                    });
+                    
+                    lastWhatsAppText = `Hola Admin, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
+                    document.getElementById('btnWhatsAppNotify').style.display = 'flex';
 
-                document.getElementById('expenseAmount').value = '';
-                document.getElementById('expenseLocation').value = '';
-                document.getElementById('ticketPreview').style.display = 'none';
-                document.getElementById('cameraPrompt').style.display = 'block';
-                selectedTicketBase64 = null;
-                
-                alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
+                    document.getElementById('expenseAmount').value = '';
+                    document.getElementById('expenseLocation').value = '';
+                    document.getElementById('ticketPreview').style.display = 'none';
+                    document.getElementById('cameraPrompt').style.display = 'block';
+                    selectedTicketBase64 = null;
+                    
+                    alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
+                }
             } catch (e) { alert('Error de red al guardar.'); }
+        };
+
+        // Activa el modo edición en el formulario del técnico
+        window.startExpenseEdit = function(id) {
+            const item = cachedItems.find(i => i.id === id);
+            if(!item) return;
+
+            editingExpenseId = id;
+            document.getElementById('formTitle').textContent = "✏️ Editando Gasto";
+            document.getElementById('expenseConcept').value = item.concept;
+            document.getElementById('expenseAmount').value = item.amount;
+            document.getElementById('expenseDate').value = item.date;
+            document.getElementById('expenseLocation').value = item.location;
+            
+            selectedTicketBase64 = item.image;
+            document.getElementById('ticketPreview').src = item.image;
+            document.getElementById('ticketPreview').style.display = 'block';
+            document.getElementById('cameraPrompt').style.display = 'none';
+
+            document.getElementById('btnSaveExpense').textContent = "Actualizar Gasto";
+            document.getElementById('btnCancelEdit').style.display = 'block';
+            document.getElementById('btnWhatsAppNotify').style.display = 'none';
+            
+            // Hacer scroll suave hacia el formulario para comodidad en el móvil
+            document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.cancelExpenseEdit = function() {
+            editingExpenseId = null;
+            document.getElementById('formTitle').textContent = "Nuevo Ticket / Gasto";
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseLocation').value = '';
+            document.getElementById('expenseDate').value = '';
+            document.getElementById('ticketPreview').style.display = 'none';
+            document.getElementById('cameraPrompt').style.display = 'block';
+            selectedTicketBase64 = null;
+            
+            document.getElementById('btnSaveExpense').textContent = "Guardar Gasto";
+            document.getElementById('btnCancelEdit').style.display = 'none';
         };
 
         window.sendWhatsAppMessage = function() {
@@ -539,8 +583,12 @@
                     const div = document.createElement('div'); div.className = 'part-item';
                     div.innerHTML = `
                         <div><strong>${item.concept}</strong> - <small>${item.location}</small><br><small style="color:#888;">${item.date}</small></div>
-                        <div><span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
-                        <span class="badge ${item.approved?'badge-approved':'badge-pending'}" style="cursor:pointer;" onclick="openPreviewModal('${item.id}')">Ver Hoja 🔍</span></div>
+                        <div style="text-align:right;">
+                            <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
+                            <span class="badge ${item.approved?'badge-approved':'badge-pending'}" style="cursor:pointer; margin-right:4px;" onclick="openPreviewModal('${item.id}')">Ver 🔍</span>
+                            <button class="btn-action-icon" onclick="startExpenseEdit('${item.id}')" title="Editar">✏️</button>
+                            <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);" title="Borrar">🗑️</button>
+                        </div>
                     `;
                     container.appendChild(div);
                 });
@@ -551,7 +599,6 @@
             });
         }
 
-        // --- SISTEMA INTEGRADOR DE NOTIFICACIONES LADO ADMINISTRADOR ---
         function listenAllExpenses() {
             const q = qFS(colFS(db, "gastos"), ordFS("createdAt", "desc"));
             unsubscribeExpenses = snapFS(q, (snapshot) => {
@@ -569,7 +616,7 @@
                     cachedItems.push(item);
                     globalTotals[item.concept] += item.amount;
 
-                    if(index === 0) newestItem = item; // Captura el último subido a la base de datos
+                    if(index === 0) newestItem = item;
 
                     if(!techBreakdown[item.user]) techBreakdown[item.user] = 0;
                     techBreakdown[item.user] += item.amount;
@@ -582,7 +629,7 @@
                             <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
-                                <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                                <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
                             </div>
                         </div>
                         <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
@@ -593,12 +640,10 @@
                     reviewDiv.appendChild(div);
                 });
 
-                // GESTIÓN NOTIFICACIÓN PUSH NATIVAS
-                // Lanzamos la alerta si no es la carga inicial de la web y hay un ticket fresco entrante
                 if (!isInitialLoad && newestItem && snapshot.docChanges().some(change => change.type === "added")) {
                     triggerPushNotification(newestItem);
                 }
-                isInitialLoad = false; // Desactivamos el bloqueo tras procesar los datos existentes
+                isInitialLoad = false; 
 
                 if(snapshot.empty) {
                     reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets subidos este mes.</p></div>`;
@@ -632,7 +677,6 @@
                 };
                 new Notification(`🔔 Gasto Nuevo: ${item.user.toUpperCase()}`, options);
                 
-                // Intento de aviso acústico estándar del navegador
                 try {
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     const oscillator = audioCtx.createOscillator();
@@ -643,10 +687,11 @@
         }
 
         window.deleteExpense = async function(id) {
-            if(confirm('¿Eliminar permanentemente de la nube?')) {
+            if(confirm('¿Eliminar permanentemente este gasto de la nube?')) {
                 const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 await delDoc(dDoc(db, "gastos", id));
                 closeModal();
+                if(editingExpenseId === id) cancelExpenseEdit();
             }
         };
 
