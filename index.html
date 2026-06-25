@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
+    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -287,6 +288,7 @@
 </head>
 <body>
 
+    <!-- NAVBAR DINÁMICA -->
     <div class="navbar">
         <img src="IMG_5467.jpeg" alt="Elevia Logo" onerror="this.style.display='none'; document.getElementById('altBrandText').style.display='block';">
         <span id="altBrandText" style="display:none; font-weight:bold; color:var(--primary); font-size:1.4rem;">elevia</span>
@@ -298,6 +300,7 @@
 
     <div class="container">
 
+        <!-- VISTA 1: LOGIN POR USUARIO SIMPLE -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -305,8 +308,8 @@
                 </div>
                 <h2 style="text-align: center; margin-top: 0; font-size: 1.3rem; color: var(--primary);">Control de Gastos</h2>
                 <div class="form-group">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="loginUser" class="form-control" placeholder="ejemplo@elevia.com">
+                    <label>Usuario</label>
+                    <input type="text" id="loginUser" class="form-control" placeholder="Ej: pepe o admin">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
@@ -316,6 +319,7 @@
             </div>
         </div>
 
+        <!-- VISTA 2: PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <h3>Mi Desglose Mensual</h3>
             <div class="grid-stats">
@@ -328,6 +332,7 @@
             <div class="card">
                 <h3 style="margin-top:0;">Nuevo Ticket / Gasto</h3>
                 
+                <!-- Captura de Cámara/Galería -->
                 <div class="camera-zone" onclick="document.getElementById('fileInput').click()">
                     <span id="cameraPrompt">📸 Haz foto al ticket o súbelo de la galería</span>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleTicketUpload(event)">
@@ -369,6 +374,7 @@
             </div>
         </div>
 
+        <!-- VISTA 3: PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
             <h3>Revisión de Tickets y Partes (Todos los Técnicos)</h3>
             <div id="adminExpensesReview"></div>
@@ -376,28 +382,34 @@
 
     </div>
 
+    <!-- MODAL CON CAPTURA DE PANTALLA REAL DE ENVÍO + ARCHIVOS ADJUNTOS -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color: var(--primary); font-size: 1.1rem; margin-bottom: 10px;">Captura de pantalla del envío</h3>
             
+            <!-- Zona de simulación visual completa -->
             <div class="screenshot-preview-container">
                 <div class="screenshot-header">
                     <span>Previsualización de Salida</span>
                     <span>PDF / WhatsApp Comprobado</span>
                 </div>
                 
+                <!-- Burbuja con el formato de datos plano que se manda -->
                 <div class="whatsapp-bubble-mock" id="whatsappTextPreview"></div>
                 
+                <!-- Contenedor con la foto/s del ticket adjunto visibles en la captura -->
                 <div style="font-weight: bold; font-size: 0.8rem; color: #555; margin-bottom: 5px;">Archivos adjuntos (Tickets en PDF):</div>
                 <div class="ticket-gallery-preview">
                     <img id="modalTicketImg" src="" alt="Ticket Vinculado">
                 </div>
             </div>
 
+            <!-- Botonera inferior dinámica -->
             <div style="display:flex; flex-direction:column; gap:8px;" id="modalActionButtons"></div>
         </div>
     </div>
 
+    <!-- CONFIGURACIÓN E INTEGRACIÓN DE FIREBASE (MÓDULOS WEB) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
@@ -419,7 +431,7 @@
             orderBy
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Configuración de tu App proveída por ti
+        // Configuración de tu App
         const firebaseConfig = {
             apiKey: "AIzaSyAIwbYlPDQ8shXazC_8lENSR8K1C3fUDjM",
             authDomain: "eleviagastos.firebaseapp.com",
@@ -438,24 +450,29 @@
         let currentUserData = null;
         let selectedTicketBase64 = null;
         let unsubscribeExpenses = null;
-        let cachedItems = []; // Almacén global temporal para alimentar jsPDF
+        let cachedItems = []; 
+        
+        // Dominio interno para "enmascarar" el login de Firebase
+        const DOMINIO_INTERNO = "@elevia.com";
 
         // --- MANEJO DE AUTENTICACIÓN GLOBAL ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Determinamos el rol según el email (si es admin@elevia.com o contiene admin, se le asigna rol admin)
-                const role = (user.email.includes('admin')) ? 'admin' : 'tecnico';
-                currentUserData = { uid: user.uid, email: user.email, role: role };
+                // Sacamos el nombre limpio (ej: de "pepe@elevia.com" saca "PEPE")
+                const usernameClean = user.email.split('@')[0];
+                const role = (usernameClean.toLowerCase().includes('admin')) ? 'admin' : 'tecnico';
+                
+                currentUserData = { uid: user.uid, username: usernameClean, role: role };
                 
                 document.getElementById('navUserInfo').style.display = 'flex';
-                document.getElementById('navUserTag').textContent = user.email.split('@')[0].toUpperCase();
+                document.getElementById('navUserTag').textContent = usernameClean.toUpperCase();
                 
                 if(role === 'admin') {
                     switchView('viewAdmin');
                     listenAllExpenses();
                 } else {
                     switchView('viewTecnico');
-                    listenTecnicoExpenses(user.email);
+                    listenTecnicoExpenses(usernameClean);
                 }
             } else {
                 currentUserData = null;
@@ -467,18 +484,24 @@
 
         // --- ACCIONES ACCESIBLES GLOBALMENTE ---
         window.handleLogin = async function() {
-            const email = document.getElementById('loginUser').value.trim();
+            let userInput = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('btnLogin');
 
-            if(!email || !pass) return alert('Por favor, rellena todos los campos.');
+            if(!userInput || !pass) return alert('Por favor, introduce tu usuario y contraseña.');
+
+            // Si el usuario no escribió un correo completo, le añadimos nuestro dominio automáticamente
+            if(!userInput.includes('@')) {
+                userInput = userInput + DOMINIO_INTERNO;
+            }
 
             try {
                 btn.disabled = true;
                 btn.textContent = "Entrando...";
-                await signInWithEmailAndPassword(auth, email, pass);
+                await signInWithEmailAndPassword(auth, userInput, pass);
             } catch (error) {
-                alert('Error al iniciar sesión: ' + error.message);
+                alert('Usuario o contraseña incorrectos.');
+                console.error("Error Firebase:", error.message);
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Entrar";
@@ -534,7 +557,7 @@
                 btn.textContent = "Guardando en la nube...";
 
                 await addDoc(collection(db, "gastos"), {
-                    user: currentUserData.email,
+                    user: currentUserData.username, // Guardamos solo el nombre limpio
                     concept,
                     amount,
                     date,
@@ -550,10 +573,10 @@
                 document.getElementById('ticketPreview').style.display = 'none';
                 document.getElementById('cameraPrompt').style.display = 'block';
                 selectedTicketBase64 = null;
-                alert('Gasto guardado en Firebase correctamente.');
+                alert('Gasto guardado correctamente.');
 
             } catch (error) {
-                alert("Error al subir a Firebase: " + error.message);
+                alert("Error al subir los datos: " + error.message);
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Guardar e Incluir en Parte";
@@ -561,8 +584,8 @@
         };
 
         // ESCUCHA EN TIEMPO REAL: TÉCNICOS
-        function listenTecnicoExpenses(email) {
-            const q = query(collection(db, "gastos"), where("user", "==", email), orderBy("createdAt", "desc"));
+        function listenTecnicoExpenses(username) {
+            const q = query(collection(db, "gastos"), where("user", "==", username), orderBy("createdAt", "desc"));
             
             unsubscribeExpenses = onSnapshot(q, (snapshot) => {
                 let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
@@ -631,7 +654,7 @@
 
                     div.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">
-                            <span>Técnico: <strong>${item.user.split('@')[0].toUpperCase()}</strong></span>
+                            <span>Técnico: <strong>${item.user.toUpperCase()}</strong></span>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
                                 <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" title="Eliminar Ticket Definitivamente" style="margin:0; padding:2px 6px;">🗑️</button>
@@ -672,7 +695,7 @@
             const item = cachedItems.find(i => i.id === id);
             if(!item) return;
             
-            const shortUser = item.user.split('@')[0].toUpperCase();
+            const shortUser = item.user.toUpperCase();
             const structuredMessage = `📄 *PARTE DE GASTOS ASOCIADO*
 ----------------------------------
 • *ID Liquidación:* ${item.id}
@@ -714,7 +737,7 @@
 
         window.sendWhatsAppText = function(id) {
             const item = cachedItems.find(i => i.id === id);
-            const shortUser = item.user.split('@')[0].toUpperCase();
+            const shortUser = item.user.toUpperCase();
             const message = `*PARTE DE GASTOS - ELEVIA ELEVADORES*
 ---------------------------------------
 *ID Parte:* ${item.id}
@@ -734,7 +757,7 @@ _Revisado y conforme por el técnico._`;
 
         window.sharePDFAndTickets = async function(id) {
             const item = cachedItems.find(i => i.id === id);
-            const shortUser = item.user.split('@')[0].toUpperCase();
+            const shortUser = item.user.toUpperCase();
             const docPdf = buildPDFDocument(item);
             const pdfBlob = docPdf.output('blob');
             const pdfFile = new File([pdfBlob], `Parte_Gasto_Elevia_${item.id}.pdf`, { type: 'application/pdf' });
@@ -750,7 +773,7 @@ _Revisado y conforme por el técnico._`;
                     console.log('Envío cancelado.', error);
                 }
             } else {
-                alert('Tu navegador o dispositivo no soporta compartición directa. Descargando PDF automáticamente para adjuntar manualmente.');
+                alert('Tu navegador no soporta compartir directamente. Descargando PDF automáticamente.');
                 docPdf.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
             }
         };
@@ -768,7 +791,7 @@ _Revisado y conforme por el técnico._`;
         function buildPDFDocument(item) {
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
-            const shortUser = item.user.split('@')[0].toUpperCase();
+            const shortUser = item.user.toUpperCase();
 
             docPdf.setFont("Helvetica", "bold");
             docPdf.setFontSize(18);
@@ -800,14 +823,9 @@ _Revisado y conforme por el técnico._`;
                 } catch (e) {
                     docPdf.setFont("Helvetica", "oblique");
                     docPdf.setFontSize(10);
-                    docPdf.text("[Error al renderizar la imagen del ticket en el documento]", 15, 110);
+                    docPdf.text("[Error al renderizar la imagen]", 15, 110);
                 }
-            } else {
-                docPdf.setFont("Helvetica", "oblique");
-                docPdf.setFontSize(11);
-                docPdf.text("No se adjuntó ninguna evidencia fotográfica para este gasto.", 15, 100);
             }
-
             return docPdf;
         }
     </script>
