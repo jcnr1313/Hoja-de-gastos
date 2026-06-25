@@ -42,18 +42,59 @@
             position: relative;
         }
 
-        header {
-            text-align: center;
+        /* --- LOGO Y ENCABEZADO --- */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 15px;
             margin-bottom: 25px;
+            gap: 20px;
         }
 
-        header h1 {
+        .logo-placeholder {
+            width: 120px;
+            height: auto;
+            max-height: 60px;
+            object-fit: contain;
+        }
+
+        .header-container h1 {
             color: var(--primary-color);
-            font-size: 24px;
+            font-size: 22px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-align: right;
+            flex: 1;
+        }
+
+        /* --- PANTALLA DE LOGIN --- */
+        .login-screen {
+            max-width: 400px;
+            margin-top: 50px;
+        }
+
+        .login-screen h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .btn-login {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .btn-login:hover {
+            background-color: #2980b9;
         }
 
         /* Botón de cerrar sesión */
@@ -91,6 +132,7 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            margin-bottom: 10px;
         }
 
         .form-group label {
@@ -114,7 +156,6 @@
             border-color: var(--accent-color);
         }
 
-        /* Bloqueo o visualización estática de usuario activo */
         .user-badge-display {
             font-size: 16px;
             font-weight: bold;
@@ -187,7 +228,6 @@
             background: #e2e8f0;
             border-radius: 6px;
             display: flex;
-            justify-flex-end;
             font-size: 18px;
             font-weight: bold;
             color: var(--primary-color);
@@ -223,7 +263,7 @@
         }
 
         .admin-header {
-            color: #7f8c8d;
+            color: #2c3e50;
             font-size: 18px;
             margin-bottom: 15px;
             text-transform: uppercase;
@@ -250,15 +290,45 @@
         .btn-status-reject:hover { background-color: #dc2626; }
         .btn-clear-row:hover { background-color: #475569; }
 
+        /* --- VISTA PREVIA DEL PDF --- */
+        .preview-panel {
+            border-top: 4px solid #3498db;
+            background: #ffffff;
+        }
+        #preview-content {
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            min-height: 100px;
+            background-color: #f8fafc;
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
 
-<div class="container" id="hoja-gastos-container">
+<div class="container login-screen" id="login-container">
+    <h2>Control de Accesos</h2>
+    <div class="form-group">
+        <label for="login-username">Usuario / Técnico</label>
+        <input type="text" id="login-username" placeholder="Escribe tu usuario o 'admin'">
+    </div>
+    <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="procesarLogin()">Entrar al Sistema</button>
+</div>
+
+<div class="container" id="hoja-gastos-container" style="display: none;">
     
     <button class="btn-logout action-column" onclick="cerrarSesion()">Cerrar Sesión ↻</button>
 
-    <header>
+    <header class="header-container">
+        <svg class="logo-placeholder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+            <rect width="100%" height="100%" fill="#2c3e50" rx="6"/>
+            <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#ffffff" dominant-baseline="middle" text-anchor="middle">EMPRESA LOGO</text>
+        </svg>
         <h1>Hoja de Control de Gastos</h1>
     </header>
 
@@ -339,8 +409,7 @@
     </div>
 </div>
 
-
-<div class="container admin-panel">
+<div class="container admin-panel" id="panel-administracion" style="display: none;">
     <div class="admin-header">Panel de Administración: Control de Estados</div>
     <table id="tabla-admin-registro">
         <thead>
@@ -352,47 +421,72 @@
                 <th>Acciones de Gestión</th>
             </tr>
         </thead>
-        <tbody id="cuerpo-tabla-admin">
-            </tbody>
+        <tbody id="cuerpo-tabla-admin"></tbody>
     </table>
 </div>
 
+<div class="container preview-panel" id="panel-vista-previa" style="display: none;">
+    <div class="admin-header">Vista Previa del Documento PDF</div>
+    <div id="preview-content">El PDF generado aparecerá aquí de forma dinámica.</div>
+</div>
+
 <script>
-    // Variables globales
     let nombreUsuarioFijado = "";
 
-    // Lógica al arrancar la página
     window.onload = function() {
         document.getElementById('fecha').valueAsDate = new Date();
         comprobarIdentidadUsuario();
-        actualizarTablaAdmin();
     };
 
-    // FUNCIÓN DE CONTROL DE SESIÓN / IDENTIDAD
+    // FUNCIÓN DE LOGIN REAL MIGRADA DESDE EL PROMPT
+    function procesarLogin() {
+        const userIn = document.getElementById('login-username').value.trim();
+        const passIn = document.getElementById('login-password').value.trim();
+
+        if (!userIn || !passIn) {
+            alert("Por favor introduce los datos de credenciales.");
+            return;
+        }
+
+        // Persistimos los datos de sesión en LocalStorage
+        localStorage.setItem('tecnicoActivo', userIn);
+        comprobarIdentidadUsuario();
+    }
+
     function comprobarIdentidadUsuario() {
         let usuarioGuardado = localStorage.getItem('tecnicoActivo');
         
         if (!usuarioGuardado) {
-            // Si no hay usuario en memoria, se lo solicita en un bucle hasta que ponga algo
-            let nombre = "";
-            while (!nombre || nombre.trim() === "") {
-                nombre = prompt("Por favor, introduce tu Nombre y Apellidos para iniciar sesión en la Hoja de Gastos:");
-            }
-            localStorage.setItem('tecnicoActivo', nombre.trim());
-            usuarioGuardado = nombre.trim();
+            // Mostrar login y ocultar la interfaz de la app
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('hoja-gastos-container').style.display = 'none';
+            document.getElementById('panel-administracion').style.display = 'none';
+            document.getElementById('panel-vista-previa').style.display = 'none';
+            return;
         }
         
         nombreUsuarioFijado = usuarioGuardado;
-        document.getElementById('tecnico-display').innerHTML = `<strong>${nombreUsuarioFijado}</strong>`;
+        
+        // Ocultar pantalla de login
+        document.getElementById('login-container').style.display = 'none';
+
+        if (nombreUsuarioFijado.toLowerCase() === 'admin') {
+            // Es administrador: Ver panel de control, ocultar panel de inserción de gastos de operarios
+            document.getElementById('hoja-gastos-container').style.display = 'none';
+            document.getElementById('panel-administracion').style.display = 'block';
+            document.getElementById('panel-vista-previa').style.display = 'none';
+            actualizarTablaAdmin();
+        } else {
+            // Es un técnico regular: Ver hoja de inserción de datos, ocultar panel administrativo
+            document.getElementById('hoja-gastos-container').style.display = 'block';
+            document.getElementById('panel-administracion').style.display = 'none';
+            document.getElementById('tecnico-display').innerHTML = `<strong>${nombreUsuarioFijado}</strong>`;
+        }
     }
 
-    // BOTÓN DE CERRAR SESIÓN
     function cerrarSesion() {
-        if (confirm("¿Estás seguro de que deseas cerrar sesión? Se borrará tu usuario recordado en este dispositivo.")) {
-            localStorage.removeItem('tecnicoActivo');
-            // Recargamos la página para que vuelva a pedir el nombre limpio
-            location.reload();
-        }
+        localStorage.removeItem('tecnicoActivo');
+        location.reload();
     }
 
     function agregarFila(idTabla) {
@@ -435,7 +529,6 @@
         };
         historial.push(nuevoRegistro);
         localStorage.setItem('historialGastos', JSON.stringify(historial));
-        actualizarTablaAdmin();
     }
 
     function actualizarTablaAdmin() {
@@ -458,7 +551,7 @@
                 <td>
                     <button class="btn-status-aprove" onclick="cambiarEstado(${registro.id}, 'aprobado')">Aprobar</button>
                     <button class="btn-status-reject" onclick="cambiarEstado(${registro.id}, 'rechazado')">Rechazar</button>
-                    <button class="btn-clear-row" onclick="borrarRegistroAdmin(${registro.id})">Desaparecer / Borrar</button>
+                    <button class="btn-clear-row" onclick="borrarRegistroAdmin(${registro.id})">Borrar</button>
                 </td>
             `;
             cuerpo.appendChild(fila);
@@ -473,7 +566,7 @@
     }
 
     function borrarRegistroAdmin(id) {
-        if(confirm('¿Seguro que quieres eliminar y hacer desaparecer este gasto de la lista?')) {
+        if(confirm('¿Seguro que quieres eliminar este gasto de la lista?')) {
             let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
             historial = historial.filter(reg => reg.id !== id);
             localStorage.setItem('historialGastos', JSON.stringify(historial));
@@ -481,20 +574,18 @@
         }
     }
 
-    // Generación de PDF interactivo con el nombre personalizado solicitado
+    // PDF e incrustación de vista previa interactiva en pantalla
     function generarYCompartirPDF() {
         const elemento = document.getElementById('hoja-gastos-container');
         const fecha = document.getElementById('fecha').value || 'Fecha';
         const total = document.getElementById('total-general').innerText;
         
-        // REQUISITO AJUSTADO: El nombre de archivo ahora es estrictamente "Gasto_[NombreUsuario].pdf"
         const nombreLimpio = nombreUsuarioFijado.replace(/\s+/g, '_');
         const nombreArchivo = `Gasto_${nombreLimpio}.pdf`;
 
-        // Registrar en la administración antes de procesar el renderizado visual
         guardarEnHistorialAdmin(nombreUsuarioFijado, fecha, total);
 
-        // Ocultar botones y acciones antes de la captura del PDF
+        // Ocultar botones interactivos antes del render
         const elementosAOcultar = document.querySelectorAll('.action-column');
         elementosAOcultar.forEach(el => el.style.visibility = 'hidden');
 
@@ -507,12 +598,20 @@
         };
 
         html2pdf().set(opciones).from(elemento).toPdf().get('pdf').then(function (pdf) {
-            // Restaurar los botones interactivos en la vista de pantalla
             elementosAOcultar.forEach(el => el.style.visibility = 'visible');
             
             const pdfBlob = pdf.output('blob');
             const archivo = new File([pdfBlob], nombreArchivo, { type: "application/pdf" });
 
+            // ENTRAR EN ACCIÓN: Renderizar la Vista Previa embebida en el navegador
+            const blobURL = URL.createObjectURL(pdfBlob);
+            const previewPanel = document.getElementById('panel-vista-previa');
+            const previewContent = document.getElementById('preview-content');
+            
+            previewPanel.style.display = 'block';
+            previewContent.innerHTML = `<embed src="${blobURL}" type="application/pdf" width="100%" height="500px" />`;
+
+            // Ejecutar nativo de compartición o descarga de respaldo
             if (navigator.share && navigator.canShare({ files: [archivo] })) {
                 navigator.share({
                     files: [archivo],
@@ -521,7 +620,6 @@
                 }).catch((err) => console.log('Envío cancelado:', err));
             } else {
                 pdf.save(nombreArchivo);
-                alert('PDF generado y descargado con éxito.');
             }
         });
     }
