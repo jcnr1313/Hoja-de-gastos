@@ -3,627 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos de Técnicos e Historial Admin</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>Control de Gastos - La Fe</title>
     <style>
         :root {
             --primary-color: #2c3e50;
-            --accent-color: #3498db;
-            --bg-color: #f5f7fa;
-            --card-bg: #ffffff;
-            --text-color: #333333;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
             --border-color: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        /* --- LOGO Y ENCABEZADO --- */
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-            gap: 20px;
-        }
-
-        .logo-placeholder {
-            width: 120px;
-            height: auto;
-            max-height: 60px;
-            object-fit: contain;
-        }
-
-        .header-container h1 {
-            color: var(--primary-color);
-            font-size: 22px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: right;
-            flex: 1;
-        }
-
-        /* --- PANTALLA DE LOGIN --- */
-        .login-screen {
-            max-width: 400px;
-            margin-top: 50px;
-        }
-
-        .login-screen h2 {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 20px;
-        }
-
-        .btn-login {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
-        }
-
-        .btn-login:hover {
-            background-color: #2980b9;
-        }
-
-        /* Botón de cerrar sesión */
-        .btn-logout {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #e2e8f0;
-            color: #475569;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-            background: #f8fafc;
+            margin: 0;
             padding: 15px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .balance-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .balance-total {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        .form-gastos {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
         }
 
         .form-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #64748b;
+            display: block;
             margin-bottom: 5px;
-            text-transform: uppercase;
+            font-weight: 500;
+            font-size: 0.9rem;
         }
 
-        .form-group input {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-group input:focus {
-            border-color: var(--accent-color);
-        }
-
-        .user-badge-display {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--primary-color);
-            padding: 8px 0;
-        }
-
-        .section-title {
-            font-size: 16px;
-            color: var(--primary-color);
-            border-left: 4px solid var(--accent-color);
-            padding-left: 10px;
-            margin: 25px 0 15px 0;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        table {
+        .form-control {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-
-        th, td {
             padding: 10px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-            font-size: 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
         }
 
-        th {
-            background-color: #f1f5f9;
-            color: var(--primary-color);
-            font-weight: 600;
+        .form-control:focus {
+            border-color: var(--primary-color);
         }
 
-        .btn-add {
-            background-color: #e2e8f0;
-            color: #334155;
+        .btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: background 0.2s;
         }
 
-        .btn-add:hover {
-            background-color: #cbd5e1;
+        .btn:active {
+            opacity: 0.9;
+        }
+
+        .history-title {
+            font-size: 1.1rem;
+            margin: 15px 0 10px 0;
+            color: var(--primary-color);
+        }
+
+        .expense-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .expense-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .expense-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expense-concept {
+            font-weight: 600;
+        }
+
+        .expense-date {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .expense-amount {
+            font-weight: bold;
+            color: var(--danger-color);
         }
 
         .btn-delete {
-            background-color: #ef4444;
-            color: white;
+            background: none;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
+            color: #ccc;
+            font-size: 1.2rem;
             cursor: pointer;
-            font-size: 12px;
+            padding-left: 10px;
         }
 
-        .btn-delete:hover {
-            background-color: #dc2626;
+        .btn-delete:hover, .btn-delete:active {
+            color: var(--danger-color);
         }
 
-        .totals-section {
-            margin-top: 30px;
-            padding: 15px;
-            background: #e2e8f0;
-            border-radius: 6px;
-            display: flex;
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary-color);
-            justify-content: flex-end;
-        }
-
-        .actions {
-            margin-top: 30px;
+        .no-expenses {
             text-align: center;
-        }
-
-        .btn-submit {
-            background-color: #22c55e;
-            color: white;
-            border: none;
-            padding: 12px 30px;
+            color: #888;
+            padding: 20px;
+            background: white;
             border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2);
-            transition: background 0.2s, transform 0.1s;
         }
-
-        .btn-submit:hover {
-            background-color: #16a34a;
-        }
-
-        /* --- ESTILOS PANEL DE ADMINISTRACIÓN --- */
-        .admin-panel {
-            border-top: 4px solid #e2e8f0;
-            background: #ffffff;
-        }
-
-        .admin-header {
-            color: #2c3e50;
-            font-size: 18px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-pendiente { background-color: #fef08a; color: #854d0e; }
-        .status-aprobado { background-color: #bbf7d0; color: #166534; }
-        .status-rechazado { background-color: #fecaca; color: #991b1b; }
-
-        .btn-status-aprove { background-color: #22c55e; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:5px;}
-        .btn-status-reject { background-color: #ef4444; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; margin-right:5px;}
-        .btn-clear-row { background-color: #64748b; color: white; border:none; padding: 4px 8px; border-radius:4px; cursor:pointer; font-size:12px; }
-        
-        .btn-status-aprove:hover { background-color: #16a34a; }
-        .btn-status-reject:hover { background-color: #dc2626; }
-        .btn-clear-row:hover { background-color: #475569; }
-
-        /* --- VISTA PREVIA DEL PDF --- */
-        .preview-panel {
-            border-top: 4px solid #3498db;
-            background: #ffffff;
-        }
-        #preview-content {
-            border: 1px dashed #cbd5e1;
-            padding: 10px;
-            min-height: 100px;
-            background-color: #f8fafc;
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
 
-<div class="container login-screen" id="login-container">
-    <h2>Control de Accesos</h2>
-    <div class="form-group">
-        <label for="login-username">Usuario / Técnico</label>
-        <input type="text" id="login-username" placeholder="Escribe tu usuario o 'admin'">
-    </div>
-    <div class="form-group">
-        <label for="login-password">Contraseña</label>
-        <input type="password" id="login-password" placeholder="••••••••">
-    </div>
-    <button class="btn-login" onclick="procesarLogin()">Entrar al Sistema</button>
-</div>
-
-<div class="container" id="hoja-gastos-container" style="display: none;">
-    
-    <button class="btn-logout action-column" onclick="cerrarSesion()">Cerrar Sesión ↻</button>
-
-    <header class="header-container">
-        <svg class="logo-placeholder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
-            <rect width="100%" height="100%" fill="#2c3e50" rx="6"/>
-            <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#ffffff" dominant-baseline="middle" text-anchor="middle">EMPRESA LOGO</text>
-        </svg>
-        <h1>Hoja de Control de Gastos</h1>
+    <header>
+        <h1>Gastos - Ascensores La Fe</h1>
     </header>
 
-    <div class="meta-grid">
-        <div class="form-group">
-            <label>Nombre del Técnico</label>
-            <div id="tecnico-display" class="user-badge-display">Cargando técnico...</div>
-        </div>
-        <div class="form-group">
-            <label for="fecha">Fecha del Informe</label>
-            <input type="date" id="fecha">
-        </div>
+    <div class="balance-card">
+        <div>Total Gastado</div>
+        <div class="balance-total" id="totalBalance">0,00 €</div>
     </div>
 
-    <div class="section-title">Gasolina / Combustible</div>
-    <table id="tabla-gasolina">
-        <thead>
-            <tr>
-                <th>Estación de Servicio / Concepto</th>
-                <th style="width: 150px;">Importe (€)</th>
-                <th style="width: 80px;" class="action-column">Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" placeholder="Ej. Gasolinera Repsol" style="width:100%; border:none; outline:none;"></td>
-                <td><input type="number" class="monto" placeholder="0.00" step="0.01" style="width:100%; border:none; outline:none;" oninput="calcularTotales()"></td>
-                <td class="action-column"><button class="btn-delete" onclick="eliminarFila(this)">X</button></td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="btn-add action-column" onclick="agregarFila('tabla-gasolina')">+ Añadir Combustible</button>
-
-    <div class="section-title">Materiales</div>
-    <table id="tabla-materiales">
-        <thead>
-            <tr>
-                <th>Descripción del Material / Proveedor</th>
-                <th style="width: 150px;">Importe (€)</th>
-                <th style="width: 80px;" class="action-column">Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" placeholder="Ej. Suministros Eléctricos" style="width:100%; border:none; outline:none;"></td>
-                <td><input type="number" class="monto" placeholder="0.00" step="0.01" style="width:100%; border:none; outline:none;" oninput="calcularTotales()"></td>
-                <td class="action-column"><button class="btn-delete" onclick="eliminarFila(this)">X</button></td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="btn-add action-column" onclick="agregarFila('tabla-materiales')">+ Añadir Material</button>
-
-    <div class="section-title">Parking / Peajes</div>
-    <table id="tabla-parking">
-        <thead>
-            <tr>
-                <th>Ubicación / Parking / Peaje</th>
-                <th style="width: 150px;">Importe (€)</th>
-                <th style="width: 80px;" class="action-column">Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" placeholder="Ej. Parking Hospital La Fe" style="width:100%; border:none; outline:none;"></td>
-                <td><input type="number" class="monto" placeholder="0.00" step="0.01" style="width:100%; border:none; outline:none;" oninput="calcularTotales()"></td>
-                <td class="action-column"><button class="btn-delete" onclick="eliminarFila(this)">X</button></td>
-            </tr>
-        </tbody>
-    </table>
-    <button class="btn-add action-column" onclick="agregarFila('tabla-parking')">+ Añadir Parking/Peaje</button>
-
-    <div class="totals-section">
-        <span>Total Gastos: <span id="total-general">0.00</span> €</span>
+    <div class="form-gastos">
+        <form id="expenseForm">
+            <div class="form-group">
+                <label for="concept">Concepto / Material / Ascensor</label>
+                <input type="text" id="concept" class="form-control" placeholder="Ej. Placa de techo Ascensor 52" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="amount">Importe (€)</label>
+                <input type="number" id="amount" class="form-control" step="0.01" placeholder="Ej. 45.50" required>
+            </div>
+            <button type="submit" class="btn">Añadir Gasto</button>
+        </form>
     </div>
 
-    <div class="actions action-column">
-        <button class="btn-submit" onclick="generarYCompartirPDF()">Generar, Guardar y Enviar PDF</button>
-    </div>
-</div>
+    <h2 class="history-title">Historial de Gastos</h2>
+    <div id="expenseList" class="expense-list"></div>
 
-<div class="container admin-panel" id="panel-administracion" style="display: none;">
-    <div class="admin-header">Panel de Administración: Control de Estados</div>
-    <table id="tabla-admin-registro">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Técnico</th>
-                <th>Total (€)</th>
-                <th>Estado</th>
-                <th>Acciones de Gestión</th>
-            </tr>
-        </thead>
-        <tbody id="cuerpo-tabla-admin"></tbody>
-    </table>
-</div>
+    <script>
+        // Cargar datos guardados en el móvil (LocalStorage) o empezar vacío
+        let gastos = JSON.parse(localStorage.getItem('gastos_lafe')) || [];
 
-<div class="container preview-panel" id="panel-vista-previa" style="display: none;">
-    <div class="admin-header">Vista Previa del Documento PDF</div>
-    <div id="preview-content">El PDF generado aparecerá aquí de forma dinámica.</div>
-</div>
+        const expenseForm = document.getElementById('expenseForm');
+        const conceptInput = document.getElementById('concept');
+        const amountInput = document.getElementById('amount');
+        const expenseList = document.getElementById('expenseList');
+        const totalBalance = document.getElementById('totalBalance');
 
-<script>
-    let nombreUsuarioFijado = "";
+        // Función para actualizar el dinero total y la lista en pantalla
+        function updateUI() {
+            expenseList.innerHTML = '';
+            let total = 0;
 
-    window.onload = function() {
-        document.getElementById('fecha').valueAsDate = new Date();
-        comprobarIdentidadUsuario();
-    };
+            if (gastos.length === 0) {
+                expenseList.innerHTML = '<div class="no-expenses">No hay gastos registrados todavía</div>';
+                totalBalance.textContent = '0,00 €';
+                return;
+            }
 
-    // FUNCIÓN DE LOGIN REAL MIGRADA DESDE EL PROMPT
-    function procesarLogin() {
-        const userIn = document.getElementById('login-username').value.trim();
-        const passIn = document.getElementById('login-password').value.trim();
+            // Ordenar por fecha (el más nuevo arriba)
+            gastos.slice().reverse().forEach((gasto, index) => {
+                const originalIndex = gastos.length - 1 - index;
+                total += parseFloat(gasto.amount);
 
-        if (!userIn || !passIn) {
-            alert("Por favor introduce los datos de credenciales.");
-            return;
+                const item = document.createElement('div');
+                item.className = 'expense-item';
+                item.innerHTML = `
+                    <div class="expense-info">
+                        <span class="expense-concept">${gasto.concept}</span>
+                        <span class="expense-date">${gasto.date}</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="expense-amount">-${parseFloat(gasto.amount).toFixed(2)} €</span>
+                        <button class="btn-delete" onclick="deleteExpense(${originalIndex})">×</button>
+                    </div>
+                `;
+                expenseList.appendChild(item);
+            });
+
+            totalBalance.textContent = `${total.toFixed(2).replace('.', ',')} €`;
         }
 
-        // Persistimos los datos de sesión en LocalStorage
-        localStorage.setItem('tecnicoActivo', userIn);
-        comprobarIdentidadUsuario();
-    }
+        // Función para añadir un nuevo gasto
+        expenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-    function comprobarIdentidadUsuario() {
-        let usuarioGuardado = localStorage.getItem('tecnicoActivo');
-        
-        if (!usuarioGuardado) {
-            // Mostrar login y ocultar la interfaz de la app
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('hoja-gastos-container').style.display = 'none';
-            document.getElementById('panel-administracion').style.display = 'none';
-            document.getElementById('panel-vista-previa').style.display = 'none';
-            return;
-        }
-        
-        nombreUsuarioFijado = usuarioGuardado;
-        
-        // Ocultar pantalla de login
-        document.getElementById('login-container').style.display = 'none';
+            const concept = conceptInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const now = new Date();
+            const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-        if (nombreUsuarioFijado.toLowerCase() === 'admin') {
-            // Es administrador: Ver panel de control, ocultar panel de inserción de gastos de operarios
-            document.getElementById('hoja-gastos-container').style.display = 'none';
-            document.getElementById('panel-administracion').style.display = 'block';
-            document.getElementById('panel-vista-previa').style.display = 'none';
-            actualizarTablaAdmin();
-        } else {
-            // Es un técnico regular: Ver hoja de inserción de datos, ocultar panel administrativo
-            document.getElementById('hoja-gastos-container').style.display = 'block';
-            document.getElementById('panel-administracion').style.display = 'none';
-            document.getElementById('tecnico-display').innerHTML = `<strong>${nombreUsuarioFijado}</strong>`;
-        }
-    }
-
-    function cerrarSesion() {
-        localStorage.removeItem('tecnicoActivo');
-        location.reload();
-    }
-
-    function agregarFila(idTabla) {
-        const tabla = document.getElementById(idTabla).getElementsByTagName('tbody')[0];
-        const nuevaFila = tabla.insertRow();
-        const celdaConcepto = nuevaFila.insertCell(0);
-        const celdaImporte = nuevaFila.insertCell(1);
-        const celdaAccion = nuevaFila.insertCell(2);
-
-        celdaConcepto.innerHTML = '<input type="text" placeholder="Concepto..." style="width:100%; border:none; outline:none;">';
-        celdaImporte.innerHTML = '<input type="number" class="monto" placeholder="0.00" step="0.01" style="width:100%; border:none; outline:none;" oninput="calcularTotales()">';
-        celdaAccion.innerHTML = '<button class="btn-delete" onclick="eliminarFila(this)">X</button>';
-        celdaAccion.className = 'action-column';
-    }
-
-    function eliminarFila(boton) {
-        const fila = boton.parentNode.parentNode;
-        fila.parentNode.removeChild(fila);
-        calcularTotales();
-    }
-
-    function calcularTotales() {
-        const montos = document.querySelectorAll('.monto');
-        let total = 0;
-        montos.forEach(input => {
-            const valor = parseFloat(input.value);
-            if (!isNaN(valor)) total += valor;
-        });
-        document.getElementById('total-general').innerText = total.toFixed(2);
-    }
-
-    function guardarEnHistorialAdmin(nombre, fecha, total) {
-        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
-        const nuevoRegistro = {
-            id: Date.now(),
-            fecha: fecha,
-            tecnico: nombre,
-            total: total,
-            estado: 'pendiente'
-        };
-        historial.push(nuevoRegistro);
-        localStorage.setItem('historialGastos', JSON.stringify(historial));
-    }
-
-    function actualizarTablaAdmin() {
-        const cuerpo = document.getElementById('cuerpo-tabla-admin');
-        cuerpo.innerHTML = '';
-        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
-
-        if(historial.length === 0) {
-            cuerpo.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No hay registros de gastos pendientes de revisión.</td></tr>';
-            return;
-        }
-
-        historial.forEach(registro => {
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>${registro.fecha}</td>
-                <td><strong>${registro.tecnico}</strong></td>
-                <td>${registro.total} €</td>
-                <td><span class="status-badge status-${registro.estado}">${registro.estado}</span></td>
-                <td>
-                    <button class="btn-status-aprove" onclick="cambiarEstado(${registro.id}, 'aprobado')">Aprobar</button>
-                    <button class="btn-status-reject" onclick="cambiarEstado(${registro.id}, 'rechazado')">Rechazar</button>
-                    <button class="btn-clear-row" onclick="borrarRegistroAdmin(${registro.id})">Borrar</button>
-                </td>
-            `;
-            cuerpo.appendChild(fila);
-        });
-    }
-
-    function cambiarEstado(id, nuevoEstado) {
-        let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
-        historial = historial.map(reg => reg.id === id ? { ...reg, estado: nuevoEstado } : reg);
-        localStorage.setItem('historialGastos', JSON.stringify(historial));
-        actualizarTablaAdmin();
-    }
-
-    function borrarRegistroAdmin(id) {
-        if(confirm('¿Seguro que quieres eliminar este gasto de la lista?')) {
-            let historial = JSON.parse(localStorage.getItem('historialGastos')) || [];
-            historial = historial.filter(reg => reg.id !== id);
-            localStorage.setItem('historialGastos', JSON.stringify(historial));
-            actualizarTablaAdmin();
-        }
-    }
-
-    // PDF e incrustación de vista previa interactiva en pantalla
-    function generarYCompartirPDF() {
-        const elemento = document.getElementById('hoja-gastos-container');
-        const fecha = document.getElementById('fecha').value || 'Fecha';
-        const total = document.getElementById('total-general').innerText;
-        
-        const nombreLimpio = nombreUsuarioFijado.replace(/\s+/g, '_');
-        const nombreArchivo = `Gasto_${nombreLimpio}.pdf`;
-
-        guardarEnHistorialAdmin(nombreUsuarioFijado, fecha, total);
-
-        // Ocultar botones interactivos antes del render
-        const elementosAOcultar = document.querySelectorAll('.action-column');
-        elementosAOcultar.forEach(el => el.style.visibility = 'hidden');
-
-        const opciones = {
-            margin:       12,
-            filename:     nombreArchivo,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opciones).from(elemento).toPdf().get('pdf').then(function (pdf) {
-            elementosAOcultar.forEach(el => el.style.visibility = 'visible');
-            
-            const pdfBlob = pdf.output('blob');
-            const archivo = new File([pdfBlob], nombreArchivo, { type: "application/pdf" });
-
-            // ENTRAR EN ACCIÓN: Renderizar la Vista Previa embebida en el navegador
-            const blobURL = URL.createObjectURL(pdfBlob);
-            const previewPanel = document.getElementById('panel-vista-previa');
-            const previewContent = document.getElementById('preview-content');
-            
-            previewPanel.style.display = 'block';
-            previewContent.innerHTML = `<embed src="${blobURL}" type="application/pdf" width="100%" height="500px" />`;
-
-            // Ejecutar nativo de compartición o descarga de respaldo
-            if (navigator.share && navigator.canShare({ files: [archivo] })) {
-                navigator.share({
-                    files: [archivo],
-                    title: `Hoja de Gastos - ${nombreUsuarioFijado}`,
-                    text: `Adjunto reporte de gastos de ${nombreUsuarioFijado}.`
-                }).catch((err) => console.log('Envío cancelado:', err));
-            } else {
-                pdf.save(nombreArchivo);
+            if (concept && !isNaN(amount)) {
+                gastos.push({ concept, amount, date: dateStr });
+                localStorage.setItem('gastos_lafe', JSON.stringify(gastos));
+                updateUI();
+                
+                // Limpiar el formulario y quitar el teclado del móvil
+                conceptInput.value = '';
+                amountInput.value = '';
+                document.activeElement.blur(); 
             }
         });
-    }
-</script>
+
+        // Función para borrar un gasto individual
+        window.deleteExpense = function(index) {
+            if(confirm('¿Seguro que quieres borrar este gasto?')) {
+                gastos.splice(index, 1);
+                localStorage.setItem('gastos_lafe', JSON.stringify(gastos));
+                updateUI();
+            }
+        };
+
+        // Renderizar todo al abrir la página por primera vez
+        updateUI();
+    </script>
 
 </body>
 </html>
