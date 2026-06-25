@@ -3,273 +3,645 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Gastos - La Fe</title>
+    <title>Gestión de Partes y Gastos - Técnico</title>
+    <!-- Librería para generar PDFs desde el cliente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --danger-color: #e74c3c;
-            --success-color: #2ecc71;
-            --bg-color: #f8f9fa;
-            --text-color: #333;
-            --border-color: #e2e8f0;
+            --primary: #2c3e50;
+            --accent: #18bc9c;
+            --dark: #34495e;
+            --light: #ecf0f1;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 15px;
+            padding: 0;
+            background-color: #f4f6f9;
+            color: #333;
         }
 
-        header {
-            background-color: var(--primary-color);
+        .navbar {
+            background-color: var(--primary);
             color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.3rem;
-        }
-
-        .balance-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .balance-total {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-top: 5px;
-        }
-
-        .form-gastos {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-        }
-
-        .btn {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn:active {
-            opacity: 0.9;
-        }
-
-        .history-title {
-            font-size: 1.1rem;
-            margin: 15px 0 10px 0;
-            color: var(--primary-color);
-        }
-
-        .expense-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .expense-item {
-            background: white;
             padding: 12px 15px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-left: 4px solid var(--danger-color);
-        }
-
-        .expense-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .expense-concept {
-            font-weight: 600;
-        }
-
-        .expense-date {
-            font-size: 0.8rem;
-            color: #777;
-            margin-top: 2px;
-        }
-
-        .expense-amount {
             font-weight: bold;
-            color: var(--danger-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .btn-delete {
-            background: none;
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
             border: none;
-            color: #ccc;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding-left: 10px;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
         }
 
-        .btn-delete:hover, .btn-delete:active {
-            color: var(--danger-color);
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
-        .no-expenses {
-            text-align: center;
-            color: #888;
-            padding: 20px;
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .card {
             background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 12px;
             border-radius: 6px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stat-box.gasolina { border-left-color: #3498db; }
+        .stat-box.dieta { border-left-color: #f1c40f; }
+        .stat-box.parking { border-left-color: #9b59b6; }
+        .stat-box.material { border-left-color: #e67e22; }
+
+        .stat-label { font-size: 0.8rem; color: #7f8c8d; text-transform: uppercase; }
+        .stat-val { font-size: 1.1rem; font-weight: bold; margin-top: 3px; }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-control, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-accent { background-color: var(--accent); }
+        .btn-danger { background-color: var(--danger); }
+
+        .camera-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .preview-img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            margin-top: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-pending { background-color: var(--warning); }
+        .badge-approved { background-color: var(--success); }
+
+        /* Lista de partes */
+        .part-item {
+            border-bottom: 1px solid #edf2f7;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .part-item:last-child { border-bottom: none; }
+
+        /* Estilos del Admin */
+        .user-row {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background: #fafafa;
+        }
+
+        /* Modal para ver detalles y simular PDF */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            max-width: 95%;
+            width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .pdf-preview-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Gastos - Ascensores La Fe</h1>
-    </header>
-
-    <div class="balance-card">
-        <div>Total Gastado</div>
-        <div class="balance-total" id="totalBalance">0,00 €</div>
+    <!-- NAVBAR DINÁMICA -->
+    <div class="navbar">
+        <span id="navTitle">Gastos La Fe</span>
+        <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">Salir</button>
     </div>
 
-    <div class="form-gastos">
-        <form id="expenseForm">
-            <div class="form-group">
-                <label for="concept">Concepto / Material / Ascensor</label>
-                <input type="text" id="concept" class="form-control" placeholder="Ej. Placa de techo Ascensor 52" required autocomplete="off">
+    <div class="container">
+
+        <!-- VISTA 1: LOGIN -->
+        <div id="viewLogin" class="view active">
+            <div class="card" style="margin-top: 40px;">
+                <h2 style="text-align: center; margin-top: 0;">Iniciar Sesión</h2>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="loginUser" class="form-control" placeholder="Introduce tu usuario">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="loginPass" class="form-control" placeholder="••••">
+                </div>
+                <button class="btn btn-accent" onclick="handleLogin()">Entrar</button>
             </div>
-            <div class="form-group">
-                <label for="amount">Importe (€)</label>
-                <input type="number" id="amount" class="form-control" step="0.01" placeholder="Ej. 45.50" required>
+        </div>
+
+        <!-- VISTA 2: PANEL TÉCNICO -->
+        <div id="viewTecnico" class="view">
+            <h3>Mi Desglose Mensual</h3>
+            <div class="grid-stats">
+                <div class="stat-box dieta"><div class="stat-label">Media Dieta</div><div class="stat-val" id="sumDieta">0.00 €</div></div>
+                <div class="stat-box gasolina"><div class="stat-label">Gasolina</div><div class="stat-val" id="sumGasolina">0.00 €</div></div>
+                <div class="stat-box parking"><div class="stat-label">Parking</div><div class="stat-val" id="sumParking">0.00 €</div></div>
+                <div class="stat-box material"><div class="stat-label">Material</div><div class="stat-val" id="sumMaterial">0.00 €</div></div>
             </div>
-            <button type="submit" class="btn">Añadir Gasto</button>
-        </form>
+
+            <div class="card">
+                <h3 style="margin-top:0;">Nuevo Ticket / Gasto</h3>
+                
+                <!-- Captura de Cámara/Galería -->
+                <div class="camera-zone" onclick="document.getElementById('fileInput').click()">
+                    <span id="cameraPrompt">📸 Haz foto al ticket o súbelo de la galería</span>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleTicketUpload(event)">
+                    <img id="ticketPreview" class="preview-img" alt="Vista previa ticket">
+                </div>
+
+                <div class="form-group">
+                    <label>Concepto de Gasto</label>
+                    <select id="expenseConcept">
+                        <option value="Media Dieta">Media Dieta</option>
+                        <option value="Gasolina">Gasolina</option>
+                        <option value="Parking">Parking</option>
+                        <option value="Material">Material</option>
+                    </select>
+                </div>
+
+                <div class="grid-stats" style="grid-template-columns: 1fr 1fr; margin-bottom:0;">
+                    <div class="form-group">
+                        <label>Importe (€)</label>
+                        <input type="number" id="expenseAmount" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="text" id="expenseDate" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dirección / Destino de la Asistencia</label>
+                    <input type="text" id="expenseLocation" class="form-control" placeholder="Ej. Centro de Salud Tolsá / Calle San Roque">
+                </div>
+
+                <button class="btn btn-accent" onclick="saveExpense()">Guardar e Incluir en Parte</button>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top:0;">Mis Gastos del Mes</h3>
+                <div id="tecnicoExpensesList"></div>
+            </div>
+        </div>
+
+        <!-- VISTA 3: PANEL ADMINISTRADOR -->
+        <div id="viewAdmin" class="view">
+            <div class="card">
+                <h3 style="margin-top:0;">Gestión de Usuarios</h3>
+                <div id="adminUserList"></div>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                <h4>Añadir / Modificar Usuario</h4>
+                <div class="form-group">
+                    <input type="text" id="newUsername" class="form-control" placeholder="Usuario" style="margin-bottom:8px;">
+                    <input type="password" id="newUserPass" class="form-control" placeholder="Contraseña">
+                </div>
+                <button class="btn btn-accent" onclick="createOrUpdateUser()">Guardar Usuario</button>
+            </div>
+
+            <h3>Revisión de Tickets y Partes</h3>
+            <div id="adminExpensesReview"></div>
+        </div>
+
     </div>
 
-    <h2 class="history-title">Historial de Gastos</h2>
-    <div id="expenseList" class="expense-list"></div>
+    <!-- MODAL DE VISUALIZACIÓN DEL PARTE (PREVIEW PDF + TICKET) -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Vista Previa del Gasto / PDF</h3>
+            
+            <p><strong>Estructura del PDF para Administración:</strong></p>
+            <div class="pdf-preview-box" id="pdfPreviewContent">
+                <!-- Se llena dinámicamente simulando un folio en papel -->
+            </div>
+
+            <p style="margin-top:15px;"><strong>Ticket Adjunto:</strong></p>
+            <img id="modalTicketImg" src="" style="width:100%; max-height:250px; object-fit: contain; border: 1px solid #ccc; border-radius:4px;">
+
+            <div style="display:flex; gap:10px; margin-top:20px;" id="modalActionButtons">
+                <!-- Los botones cambian dinámicamente según si eres Admin o Técnico -->
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Cargar datos guardados en el móvil (LocalStorage) o empezar vacío
-        let gastos = JSON.parse(localStorage.getItem('gastos_lafe')) || [];
+        // --- BASE DE DATOS LOCAL (SIMULADA CON LOCALSTORAGE) ---
+        if(!localStorage.getItem('gas_users')) {
+            const defaultUsers = {
+                'admin': { pass: 'admin123', role: 'admin' },
+                'juan': { pass: '1234', role: 'tecnico' }
+            };
+            localStorage.setItem('gas_users', JSON.stringify(defaultUsers));
+        }
+        if(!localStorage.getItem('gas_items')) {
+            localStorage.setItem('gas_items', JSON.stringify([]));
+        }
 
-        const expenseForm = document.getElementById('expenseForm');
-        const conceptInput = document.getElementById('concept');
-        const amountInput = document.getElementById('amount');
-        const expenseList = document.getElementById('expenseList');
-        const totalBalance = document.getElementById('totalBalance');
+        let currentUser = null;
+        let selectedTicketBase64 = null;
+        let activeViewExpenseId = null;
 
-        // Función para actualizar el dinero total y la lista en pantalla
-        function updateUI() {
-            expenseList.innerHTML = '';
-            let total = 0;
+        // --- SISTEMA DE LOGIN ---
+        function handleLogin() {
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+            const users = JSON.parse(localStorage.getItem('gas_users'));
 
-            if (gastos.length === 0) {
-                expenseList.innerHTML = '<div class="no-expenses">No hay gastos registrados todavía</div>';
-                totalBalance.textContent = '0,00 €';
+            if(users[u] && users[u].pass === p) {
+                currentUser = { username: u, role: users[u].role };
+                document.getElementById('logoutBtn').style.display = 'block';
+                document.getElementById('navTitle').textContent = `Gastos La Fe - ${u.toUpperCase()}`;
+                
+                if(currentUser.role === 'admin') {
+                    switchView('viewAdmin');
+                    loadAdminData();
+                } else {
+                    switchView('viewTecnico');
+                    loadTecnicoData();
+                }
+            } else {
+                alert('Credenciales incorrectas');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('navTitle').textContent = "Gastos La Fe";
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPass').value = '';
+            switchView('viewLogin');
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // --- LÓGICA DE CAPTURA Y OCR SIMULADO (CÁMARA / GALERÍA) ---
+        function handleTicketUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedTicketBase64 = e.target.result;
+                document.getElementById('ticketPreview').src = selectedTicketBase64;
+                document.getElementById('ticketPreview').style.display = 'block';
+                document.getElementById('cameraPrompt').style.display = 'none';
+
+                // --- SIMULACIÓN DE EXTRACCIÓN DE DATOS POR CÁMARA (OCR) ---
+                // Generamos un importe aleatorio realista y la fecha de hoy para simular que la cámara lee el papel
+                const randomAmount = (Math.random() * (45 - 12) + 12).toFixed(2);
+                const today = new Date();
+                const dateStr = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+
+                document.getElementById('expenseAmount').value = randomAmount;
+                document.getElementById('expenseDate').value = dateStr;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- GUARDAR GASTO ---
+        function saveExpense() {
+            const concept = document.getElementById('expenseConcept').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const date = document.getElementById('expenseDate').value.trim();
+            const location = document.getElementById('expenseLocation').value.trim();
+
+            if(!amount || !date || !location || !selectedTicketBase64) {
+                alert('Por favor, haz la foto al ticket y rellena la dirección/destino.');
                 return;
             }
 
-            // Ordenar por fecha (el más nuevo arriba)
-            gastos.slice().reverse().forEach((gasto, index) => {
-                const originalIndex = gastos.length - 1 - index;
-                total += parseFloat(gasto.amount);
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const newItem = {
+                id: Date.now(),
+                user: currentUser.username,
+                concept,
+                amount,
+                date,
+                location,
+                image: selectedTicketBase64,
+                approved: false
+            };
 
-                const item = document.createElement('div');
-                item.className = 'expense-item';
-                item.innerHTML = `
-                    <div class="expense-info">
-                        <span class="expense-concept">${gasto.concept}</span>
-                        <span class="expense-date">${gasto.date}</span>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <span class="expense-amount">-${parseFloat(gasto.amount).toFixed(2)} €</span>
-                        <button class="btn-delete" onclick="deleteExpense(${originalIndex})">×</button>
-                    </div>
-                `;
-                expenseList.appendChild(item);
-            });
+            items.push(newItem);
+            localStorage.setItem('gas_items', JSON.stringify(items));
 
-            totalBalance.textContent = `${total.toFixed(2).replace('.', ',')} €`;
+            // Resetear Formulario
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseDate').value = '';
+            document.getElementById('expenseLocation').value = '';
+            document.getElementById('ticketPreview').style.display = 'none';
+            document.getElementById('cameraPrompt').style.display = 'block';
+            selectedTicketBase64 = null;
+
+            loadTecnicoData();
+            alert('Gasto guardado correctamente y enviado a revisión.');
         }
 
-        // Función para añadir un nuevo gasto
-        expenseForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+        // --- CONTROLADORES DE VISTA TÉCNICO ---
+        function loadTecnicoData() {
+            const items = JSON.parse(localStorage.getItem('gas_items')).filter(i => i.user === currentUser.username);
+            
+            // Inicializar contadores mensuales
+            let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+            
+            const listContainer = document.getElementById('tecnicoExpensesList');
+            listContainer.innerHTML = '';
 
-            const concept = conceptInput.value.trim();
-            const amount = parseFloat(amountInput.value);
-            const now = new Date();
-            const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            if(items.length === 0) {
+                listContainer.innerHTML = '<p style="color:#666; text-align:center;">No tienes gastos cargados este mes.</p>';
+            }
 
-            if (concept && !isNaN(amount)) {
-                gastos.push({ concept, amount, date: dateStr });
-                localStorage.setItem('gastos_lafe', JSON.stringify(gastos));
-                updateUI();
+            items.forEach(item => {
+                totals[item.concept] += item.amount;
+
+                const div = document.createElement('div');
+                div.className = 'part-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.concept}</strong> - <span style="font-size:0.9rem; color:#555;">${item.location}</span><br>
+                        <small style="color:#888;">${item.date}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
+                        <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}" style="cursor:pointer;" onclick="openPreviewModal(${item.id})">
+                            ${item.approved ? 'Aprobado' : 'Pendiente'} 🔍
+                        </span>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            // Actualizar tarjetas superiores
+            document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
+            document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
+            document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
+            document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
+        }
+
+        // --- CONTROLADORES DE VISTA ADMINISTRADOR ---
+        function loadAdminData() {
+            // Cargar lista de usuarios
+            const users = JSON.parse(localStorage.getItem('gas_users'));
+            const userListDiv = document.getElementById('adminUserList');
+            userListDiv.innerHTML = '';
+
+            Object.keys(users).forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'user-row';
+                div.style.display = 'flex';
+                div.style.justify = 'space-between';
+                div.innerHTML = `
+                    <span><strong>${u}</strong> (${users[u].role})</span>
+                    <button class="logout-btn" style="background:var(--primary);" onclick="prepareUserEdit('${u}')">Editar</button>
+                `;
+                userListDiv.appendChild(div);
+            });
+
+            // Cargar revisión de gastos pendientes/aprobados
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const reviewDiv = document.getElementById('adminExpensesReview');
+            reviewDiv.innerHTML = '';
+
+            if(items.length === 0) {
+                reviewDiv.innerHTML = '<p style="color:#666;">No hay gastos cargados en el sistema.</p>';
+            }
+
+            items.slice().reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:10px;">
+                        <span>Técnico: <strong>${item.user.toUpperCase()}</strong></span>
+                        <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                    </div>
+                    <p style="margin:5px 0;"><strong>${item.concept}</strong>: ${item.amount.toFixed(2)} €</p>
+                    <p style="margin:5px 0; font-size:0.9rem; color:#555;">📍 Destino: ${item.location}</p>
+                    <small style="color:#888;">Fecha del ticket: ${item.date}</small>
+                    <button class="btn btn-accent" style="margin-top:10px; padding:6px; font-size:0.9rem;" onclick="openPreviewModal(${item.id})">Revisar e Imprimir PDF</button>
+                `;
+                reviewDiv.appendChild(div);
+            });
+        }
+
+        function prepareUserEdit(username) {
+            const users = JSON.parse(localStorage.getItem('gas_users'));
+            document.getElementById('newUsername').value = username;
+            document.getElementById('newUserPass').value = users[username].pass;
+        }
+
+        function createOrUpdateUser() {
+            const u = document.getElementById('newUsername').value.trim();
+            const p = document.getElementById('newUserPass').value;
+            if(!u || !p) return alert('Rellena los campos de usuario');
+
+            const users = JSON.parse(localStorage.getItem('gas_users'));
+            users[u] = { pass: p, role: u === 'admin' ? 'admin' : 'tecnico' };
+            localStorage.setItem('gas_users', JSON.stringify(users));
+
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newUserPass').value = '';
+            loadAdminData();
+            alert('Usuario actualizado/creado correctamente');
+        }
+
+        // --- MODAL: CONVERTIR A PDF Y ACCIONES EN LA APP ---
+        function openPreviewModal(id) {
+            activeViewExpenseId = id;
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const item = items.find(i => i.id === id);
+            
+            // Render de previsualización en papel limpio tipo PDF
+            const pdfBox = document.getElementById('pdfPreviewContent');
+            pdfBox.innerHTML = `
+                ===================================<br>
+                   PARTE DE GASTOS - LA FE ELEVADORES<br>
+                ===================================<br>
+                ID PARTE: ${item.id}<br>
+                TÉCNICO: ${item.user.toUpperCase()}<br>
+                FECHA COMPROBANTE: ${item.date}<br>
+                CATEGORÍA: ${item.concept}<br>
+                DIRECCIÓN: ${item.location}<br>
+                -----------------------------------<br>
+                TOTAL LIQUIDACIÓN: ${item.amount.toFixed(2)} €<br>
+                ESTADO: ${item.approved ? 'APROBADO POR ADM' : 'PENDIENTE DE REVISIÓN'}<br>
+                ===================================
+            `;
+
+            document.getElementById('modalTicketImg').src = item.image;
+
+            const actionButtons = document.getElementById('modalActionButtons');
+            actionButtons.innerHTML = '';
+
+            // Botón estándar para cerrar el visor
+            const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar</button>`;
+
+            if(currentUser.role === 'admin') {
+                // El admin puede aprobar/desaprobar y forzar descarga
+                const approveBtn = item.approved 
+                    ? `<button class="btn btn-danger" onclick="toggleApprove(${item.id}, false)">Revocar Aprobación</button>`
+                    : `<button class="btn btn-accent" onclick="toggleApprove(${item.id}, true)">Aprobar Gasto</button>`;
                 
-                // Limpiar el formulario y quitar el teclado del móvil
-                conceptInput.value = '';
-                amountInput.value = '';
-                document.activeElement.blur(); 
+                const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id})">Descargar PDF Oficial</button>`;
+                
+                actionButtons.innerHTML = approveBtn + downloadBtn + closeBtn;
+            } else {
+                // El técnico puede descargar el PDF para ver cómo queda
+                const downloadBtn = `<button class="btn btn-accent" onclick="generateActualPDF(${item.id})">Descargar mi PDF</button>`;
+                actionButtons.innerHTML = downloadBtn + closeBtn;
             }
-        });
 
-        // Función para borrar un gasto individual
-        window.deleteExpense = function(index) {
-            if(confirm('¿Seguro que quieres borrar este gasto?')) {
-                gastos.splice(index, 1);
-                localStorage.setItem('gastos_lafe', JSON.stringify(gastos));
-                updateUI();
-            }
-        };
+            document.getElementById('previewModal').style.display = 'flex';
+        }
 
-        // Renderizar todo al abrir la página por primera vez
-        updateUI();
+        function closeModal() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        function toggleApprove(id, status) {
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const idx = items.findIndex(i => i.id === id);
+            items[idx].approved = status;
+            localStorage.setItem('gas_items', JSON.stringify(items));
+            
+            closeModal();
+            loadAdminData();
+        }
+
+        // Genera el archivo físico en PDF usando jsPDF usando los datos del objeto
+        function generateActualPDF(id) {
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const item = items.find(i => i.id === id);
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("PARTE DE GASTOS - ASCENSORES LA FE", 15, 20);
+            
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(11);
+            doc.text(`ID Liquidación: ${item.id}`, 15, 32);
+            doc.text(`Técnico Evaluador: ${item.user.toUpperCase()}`, 15, 40);
+            doc.text(`Fecha del Ticket: ${item.date}`, 15, 48);
+            doc.text(`Categoría: ${item.concept}`, 15, 56);
+            doc.text(`Destino / Dirección: ${item.location}`, 15, 64);
+            
+            doc.setFontSize(14);
+            doc.text(`Importe a Liquidar: ${item.amount.toFixed(2)} €`, 15, 76);
+            doc.text(`Estado: ${item.approved ? 'APROBADO' : 'PENDIENTE'}`, 15, 84);
+
+            // Adjuntar la imagen del ticket en la segunda mitad de la hoja
+            doc.text("Evidencia / Ticket Adjunto:", 15, 100);
+            doc.addImage(item.image, 'JPEG', 15, 105, 120, 120);
+
+            doc.save(`Parte_Gasto_${item.id}.pdf`);
+        }
     </script>
-
 </body>
 </html>
