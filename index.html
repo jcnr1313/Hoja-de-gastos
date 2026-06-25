@@ -143,7 +143,7 @@
 
         .btn-accent { background-color: var(--accent); }
         .btn-danger { background-color: var(--danger); }
-        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; margin-top: 10px; }
 
         .camera-zone {
             border: 2px dashed #cbd5e1;
@@ -336,6 +336,9 @@
                 </div>
 
                 <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar Gasto</button>
+                
+                <!-- Botón dinámico de envío opcional a WhatsApp -->
+                <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp al Admin</button>
             </div>
 
             <div class="card">
@@ -397,7 +400,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore as initFS, collection as colFS, query as qFS, orderBy as ordFS, onSnapshot as snapFS } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // CONFIGURACIÓN: CAMBIA ESTE NÚMERO POR EL DEL ADMINISTRADOR (Con prefijo de país, ej: 34 para España)
+        const TELEFONO_ADMINISTRADOR = "34627956691"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyAIwbYlPDQ8shXazC_8lENSR8K1C3fUDjM",
@@ -410,13 +417,20 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = initFS(app);
 
         let currentUserData = null;
         let selectedTicketBase64 = null;
         let unsubscribeExpenses = null;
         let cachedItems = []; 
+        let lastWhatsAppText = ""; 
+        let isInitialLoad = true; // Control de bypass para no alertar registros viejos al cargar la página
         const DOMINIO_INTERNO = "@elevia.com";
+
+        // Solicitar permisos de notificación nativa al arrancar la app
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -487,21 +501,34 @@
             if(!amount || !date || !location || !selectedTicketBase64) return alert('Por favor, rellena todos los datos e incluye foto.');
 
             try {
-                await addDoc(collection(db, "gastos"), {
+                await addDoc(colFS(db, "gastos"), {
                     user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
                 });
+                
+                // Preparar mensaje automático para el botón de WhatsApp
+                lastWhatsAppText = `Hola Admin, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
+                document.getElementById('btnWhatsAppNotify').style.display = 'flex';
+
                 document.getElementById('expenseAmount').value = '';
                 document.getElementById('expenseLocation').value = '';
                 document.getElementById('ticketPreview').style.display = 'none';
                 document.getElementById('cameraPrompt').style.display = 'block';
                 selectedTicketBase64 = null;
-                alert('Gasto subido con éxito.');
-            } catch (e) { alert('Error de red.'); }
+                
+                alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
+            } catch (e) { alert('Error de red al guardar.'); }
+        };
+
+        window.sendWhatsAppMessage = function() {
+            if(!lastWhatsAppText) return;
+            const url = `https://api.whatsapp.com/send?phone=${TELEFONO_ADMINISTRADOR}&text=${encodeURIComponent(lastWhatsAppText)}`;
+            window.open(url, '_blank');
+            document.getElementById('btnWhatsAppNotify').style.display = 'none';
         };
 
         function listenTecnicoExpenses(username) {
-            const q = query(collection(db, "gastos"), where("user", "==", username), orderBy("createdAt", "desc"));
-            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+            const q = qFS(colFS(db, "gastos"), where("user", "==", username), ordFS("createdAt", "desc"));
+            unsubscribeExpenses = snapFS(q, (snapshot) => {
                 let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 const container = document.getElementById('tecnicoExpensesList');
                 container.innerHTML = ''; cachedItems = [];
@@ -524,10 +551,10 @@
             });
         }
 
-        // --- FUNCIÓN CORREGIDA: HISTORIAL EN VIVO EN PANEL ADMINISTRADOR ---
+        // --- SISTEMA INTEGRADOR DE NOTIFICACIONES LADO ADMINISTRADOR ---
         function listenAllExpenses() {
-            const q = query(collection(db, "gastos"), orderBy("createdAt", "desc"));
-            unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+            const q = qFS(colFS(db, "gastos"), ordFS("createdAt", "desc"));
+            unsubscribeExpenses = snapFS(q, (snapshot) => {
                 const reviewDiv = document.getElementById('adminExpensesReview');
                 const techDiv = document.getElementById('adminTechniciansSummary');
                 reviewDiv.innerHTML = ''; 
@@ -535,40 +562,48 @@
                 
                 let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 let techBreakdown = {};
+                let newestItem = null;
+
+                snapshot.forEach((docSnap, index) => {
+                    const item = { id: docSnap.id, ...docSnap.data() };
+                    cachedItems.push(item);
+                    globalTotals[item.concept] += item.amount;
+
+                    if(index === 0) newestItem = item; // Captura el último subido a la base de datos
+
+                    if(!techBreakdown[item.user]) techBreakdown[item.user] = 0;
+                    techBreakdown[item.user] += item.amount;
+
+                    const div = document.createElement('div'); 
+                    div.className = 'card';
+                    div.style.borderLeft = "4px solid var(--primary)";
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                            <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                                <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                            </div>
+                        </div>
+                        <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
+                        <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
+                        <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
+                        <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
+                    `;
+                    reviewDiv.appendChild(div);
+                });
+
+                // GESTIÓN NOTIFICACIÓN PUSH NATIVAS
+                // Lanzamos la alerta si no es la carga inicial de la web y hay un ticket fresco entrante
+                if (!isInitialLoad && newestItem && snapshot.docChanges().some(change => change.type === "added")) {
+                    triggerPushNotification(newestItem);
+                }
+                isInitialLoad = false; // Desactivamos el bloqueo tras procesar los datos existentes
 
                 if(snapshot.empty) {
                     reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets subidos este mes.</p></div>`;
                     techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
                 } else {
-                    snapshot.forEach(docSnap => {
-                        const item = { id: docSnap.id, ...docSnap.data() };
-                        cachedItems.push(item);
-                        globalTotals[item.concept] += item.amount;
-
-                        if(!techBreakdown[item.user]) techBreakdown[item.user] = 0;
-                        techBreakdown[item.user] += item.amount;
-
-                        // PINTAR CADA ELEMENTO INDIVIDUAL EN EL HISTORIAL GENERAL DEL ADMIN
-                        const div = document.createElement('div'); 
-                        div.className = 'card';
-                        div.style.borderLeft = "4px solid var(--primary)";
-                        div.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                                <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
-                                    <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
-                                </div>
-                            </div>
-                            <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
-                            <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
-                            <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
-                            <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
-                        `;
-                        reviewDiv.appendChild(div);
-                    });
-
-                    // Construcción de la tabla resumen por operario
                     let tableHtml = `<table class="admin-table"><thead><tr><th>Técnico</th><th>Total Mes</th><th>Acción</th></tr></thead><tbody>`;
                     for(let t in techBreakdown) {
                         tableHtml += `<tr>
@@ -588,15 +623,36 @@
             });
         }
 
+        function triggerPushNotification(item) {
+            if (Notification.permission === "granted") {
+                const options = {
+                    body: `Concepto: ${item.concept} (${item.amount.toFixed(2)} €)\nUbicación: ${item.location}`,
+                    icon: 'IMG_5467.jpeg',
+                    vibrate: [200, 100, 200]
+                };
+                new Notification(`🔔 Gasto Nuevo: ${item.user.toUpperCase()}`, options);
+                
+                // Intento de aviso acústico estándar del navegador
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                    oscillator.connect(audioCtx.destination); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.15);
+                } catch(e){}
+            }
+        }
+
         window.deleteExpense = async function(id) {
             if(confirm('¿Eliminar permanentemente de la nube?')) {
-                await deleteDoc(doc(db, "gastos", id));
+                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await delDoc(dDoc(db, "gastos", id));
                 closeModal();
             }
         };
 
         window.toggleApprove = async function(id, status) {
-            await updateDoc(doc(db, "gastos", id), { approved: status });
+            const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await upDoc(dDoc(db, "gastos", id), { approved: status });
             closeModal();
         };
 
@@ -630,7 +686,6 @@
 
         window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
 
-        // --- PROCESADOR DE PDF INTEGRADO POR CONCEPTOS ---
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = cachedItems.filter(i => i.user === targetUser);
             if(userExpenses.length === 0) return alert('Este operario no registra datos cargados para exportar.');
@@ -679,7 +734,6 @@
             docPdf.setFontSize(14); docPdf.setTextColor(231, 76, 60);
             docPdf.text(`LIQUIDACIÓN TOTAL DEL MES: ${finalGrandTotal.toFixed(2)} €`, 15, currentY);
 
-            // ANEXAR FOTOS UNA DETRÁS DE OTRA EN NUEVAS PÁGINAS
             userExpenses.forEach((item, index) => {
                 docPdf.addPage();
                 docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(12); docPdf.setTextColor(44, 62, 80);
