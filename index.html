@@ -192,7 +192,6 @@
             padding: 4px 8px;
         }
 
-        /* --- NUEVO DISEÑO TABLA TÉCNICOS --- */
         .admin-table {
             width: 100%;
             border-collapse: collapse;
@@ -209,7 +208,6 @@
         }
         .admin-table th { background: #edf2f7; color: var(--primary); font-weight: bold; }
 
-        /* --- NUEVO PREVISUALIZADOR HOJA PDF REAL --- */
         .modal {
             display: none;
             position: fixed;
@@ -366,16 +364,15 @@
         </div>
     </div>
 
-    <!-- MODAL NUEVO: SIMULACIÓN EXACTA DE HOJA PDF IMPRESA -->
+    <!-- MODAL PREVISUALIZADOR HOJA PDF REAL -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color:white; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
             
-            <!-- Simulador de Hoja Impresa -->
             <div class="pdf-page-mock" id="pdfMockContainer">
                 <div class="pdf-mock-header">
-                    <div style="font-weight:bold; font-size:1.3rem; color:#2c3e50; text-transform:uppercase;">ELEVIA ELEVADORES S.L.</div>
-                    <div style="font-size:0.8rem; color:#666;">Control y Certificación Digital de Notas de Gastos</div>
+                    <div style="font-weight:bold; font-size:1.3rem; color:#2c3e50; text-transform:uppercase;">INFORME INDIVIDUAL GASTOS</div>
+                    <div style="font-size:0.8rem; color:#666;">Control Técnico Elevia</div>
                 </div>
                 <div style="margin-bottom:15px; font-size:0.9rem; line-height:1.5;">
                     • <strong>TÉCNICO OPERARIO:</strong> <span id="mockUser">--</span><br>
@@ -527,12 +524,14 @@
             });
         }
 
+        // --- FUNCIÓN CORREGIDA: HISTORIAL EN VIVO EN PANEL ADMINISTRADOR ---
         function listenAllExpenses() {
             const q = query(collection(db, "gastos"), orderBy("createdAt", "desc"));
             unsubscribeExpenses = onSnapshot(q, (snapshot) => {
                 const reviewDiv = document.getElementById('adminExpensesReview');
                 const techDiv = document.getElementById('adminTechniciansSummary');
-                reviewDiv.innerHTML = ''; cachedItems = [];
+                reviewDiv.innerHTML = ''; 
+                cachedItems = [];
                 
                 let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 let techBreakdown = {};
@@ -546,23 +545,30 @@
                         cachedItems.push(item);
                         globalTotals[item.concept] += item.amount;
 
-                        // Agrupar datos por operario individual
                         if(!techBreakdown[item.user]) techBreakdown[item.user] = 0;
                         techBreakdown[item.user] += item.amount;
 
-                        const div = document.createElement('div'); div.className = 'card';
+                        // PINTAR CADA ELEMENTO INDIVIDUAL EN EL HISTORIAL GENERAL DEL ADMIN
+                        const div = document.createElement('div'); 
+                        div.className = 'card';
+                        div.style.borderLeft = "4px solid var(--primary)";
                         div.innerHTML = `
-                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                <span>Operario: <strong>${item.user.toUpperCase()}</strong></span>
-                                <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')">🗑️</button>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">
+                                <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                                    <button class="btn-delete-expense" onclick="deleteExpense('${item.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                                </div>
                             </div>
-                            <p style="margin:4px 0;"><strong>${item.concept}</strong>: ${item.amount.toFixed(2)} € (${item.location})</p>
-                            <button class="btn btn-accent" style="padding:5px; font-size:0.85rem; margin-top:5px;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
+                            <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
+                            <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
+                            <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
+                            <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
                         `;
                         reviewDiv.appendChild(div);
                     });
 
-                    // Construcción de la tabla de técnicos dinámica
+                    // Construcción de la tabla resumen por operario
                     let tableHtml = `<table class="admin-table"><thead><tr><th>Técnico</th><th>Total Mes</th><th>Acción</th></tr></thead><tbody>`;
                     for(let t in techBreakdown) {
                         tableHtml += `<tr>
@@ -624,7 +630,7 @@
 
         window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
 
-        // --- MOTOR INTELIGENTE: GENERADOR DE "SÚPER PDF" CONSOLIDADO POR CONCEPTOS ---
+        // --- PROCESADOR DE PDF INTEGRADO POR CONCEPTOS ---
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = cachedItems.filter(i => i.user === targetUser);
             if(userExpenses.length === 0) return alert('Este operario no registra datos cargados para exportar.');
@@ -632,14 +638,12 @@
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
             
-            // 1. Cabecera Institucional
             docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(18); docPdf.setTextColor(44, 62, 80);
             docPdf.text("INFORME DE LIQUIDACIÓN DE GASTOS", 15, 20);
             docPdf.setFontSize(10); docPdf.setFont("Helvetica", "normal"); docPdf.setTextColor(100, 116, 139);
             docPdf.text(`Empresa: ELEVIA ELEVADORES S.L.  |  Operario: ${targetUser.toUpperCase()}`, 15, 26);
             docPdf.line(15, 29, 195, 29);
 
-            // 2. Clasificación Avanzada por Secciones
             const categories = ['Media Dieta', 'Gasolina', 'Parking', 'Material'];
             let currentY = 38;
             let finalGrandTotal = 0;
@@ -671,12 +675,11 @@
                 }
             });
 
-            // 3. Cierre de Liquidación y Gran Total
             docPdf.line(15, currentY, 195, currentY); currentY += 8;
             docPdf.setFontSize(14); docPdf.setTextColor(231, 76, 60);
             docPdf.text(`LIQUIDACIÓN TOTAL DEL MES: ${finalGrandTotal.toFixed(2)} €`, 15, currentY);
 
-            // 4. Salto de Página Automático para Estampar los Tickets Adjuntos
+            // ANEXAR FOTOS UNA DETRÁS DE OTRA EN NUEVAS PÁGINAS
             userExpenses.forEach((item, index) => {
                 docPdf.addPage();
                 docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(12); docPdf.setTextColor(44, 62, 80);
