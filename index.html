@@ -186,6 +186,22 @@
         }
         .part-item:last-child { border-bottom: none; }
 
+        .btn-delete-expense {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .btn-delete-expense:hover {
+            background: #fdf2f2;
+        }
+
         .user-row {
             border: 1px solid #e2e8f0;
             padding: 10px;
@@ -544,14 +560,20 @@
 
                 const div = document.createElement('div');
                 div.className = 'part-item';
+                
+                const deleteButtonHtml = !item.approved 
+                    ? `<button class="btn-delete-expense" onclick="deleteExpense(${item.id})" title="Cancelar Gasto">🗑️</button>` 
+                    : '';
+
                 div.innerHTML = `
                     <div>
                         <strong>${item.concept}</strong> - <span style="font-size:0.9rem; color:#555;">${item.location}</span><br>
                         <small style="color:#888;">${item.date}</small>
                     </div>
                     <div style="text-align:right;">
-                        <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
-                        <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}" style="cursor:pointer;" onclick="openPreviewModal(${item.id})">
+                        <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span>
+                        ${deleteButtonHtml}<br>
+                        <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}" style="cursor:pointer; display:inline-block; margin-top:5px;" onclick="openPreviewModal(${item.id})">
                             ${item.approved ? 'Aprobado' : 'Pendiente'} 🔍
                         </span>
                     </div>
@@ -563,6 +585,15 @@
             document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
             document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
             document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
+        }
+
+        function deleteExpense(id) {
+            if (confirm('¿Estás seguro de que deseas cancelar y eliminar este gasto?')) {
+                let items = JSON.parse(localStorage.getItem('gas_items'));
+                items = items.filter(item => item.id !== id);
+                localStorage.setItem('gas_items', JSON.stringify(items));
+                loadTecnicoData();
+            }
         }
 
         function loadAdminData() {
@@ -628,13 +659,11 @@
             alert('Usuario actualizado/creado correctamente');
         }
 
-        // --- ACTUALIZACIÓN DEL MODAL CON LA PREVISUALIZACIÓN DE CAPTURA REAL ---
         function openPreviewModal(id) {
             activeViewExpenseId = id;
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
             
-            // Texto limpio formateado que se simula en pantalla y se envía
             const structuredMessage = `📄 *PARTE DE GASTOS ASOCIADO*
 ----------------------------------
 • *ID Liquidación:* ${item.id}
@@ -646,18 +675,16 @@
 💰 *TOTAL A REEMBOLSAR:* ${item.amount.toFixed(2)} €
 • *Estado:* ${item.approved ? '✅ VALIDADO POR ADM' : '⏳ PENDIENTE'}`;
 
-            // Inyectamos el texto en la previsualización de la captura
             document.getElementById('whatsappTextPreview').textContent = structuredMessage;
-
-            // Inyectamos la imagen del ticket adjunto en la captura
             document.getElementById('modalTicketImg').src = item.image;
 
-            // Renderizado dinámico de la botonera
             const actionButtons = document.getElementById('modalActionButtons');
             actionButtons.innerHTML = '';
 
-            const whatsappBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsApp(${item.id})">📲 Mandar por WhatsApp a Administración</button>`;
-            const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id})">📥 Descargar Copia PDF</button>`;
+            // BOTONES DINÁMICOS ACTUALIZADOS (Se incluye compartir PDF de forma nativa por Whatsapp)
+            const whatsappTextBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsAppText(${item.id})">💬 Mandar Resumen por Mensaje</button>`;
+            const whatsappFileBtn = `<button class="btn" style="background-color:#128C7E;" onclick="sharePDFAndTickets(${item.id})">📲 Compartir PDF e Informe por WhatsApp</button>`;
+            const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id}, true)">📥 Descargar Copia PDF</button>`;
             const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar Previsualización</button>`;
 
             if(currentUser.role === 'admin') {
@@ -665,9 +692,9 @@
                     ? `<button class="btn btn-danger" onclick="toggleApprove(${item.id}, false)">Revocar Aprobación</button>`
                     : `<button class="btn btn-accent" onclick="toggleApprove(${item.id}, true)">Aprobar y Guardar Gasto</button>`;
                 
-                actionButtons.innerHTML = approveBtn + whatsappBtn + downloadBtn + closeBtn;
+                actionButtons.innerHTML = approveBtn + whatsappFileBtn + whatsappTextBtn + downloadBtn + closeBtn;
             } else {
-                actionButtons.innerHTML = whatsappBtn + downloadBtn + closeBtn;
+                actionButtons.innerHTML = whatsappFileBtn + whatsappTextBtn + downloadBtn + closeBtn;
             }
 
             document.getElementById('previewModal').style.display = 'flex';
@@ -687,8 +714,8 @@
             loadAdminData();
         }
 
-        // --- ENVIAR DATOS POR WHATSAPP ---
-        function sendWhatsApp(id) {
+        // --- ENVIAR DATOS POR TEXTO EN WHATSAPP (CLÁSICO) ---
+        function sendWhatsAppText(id) {
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
 
@@ -703,17 +730,44 @@
 *TOTAL LIQUIDACIÓN:* ${item.amount.toFixed(2)} €
 *Estado:* ${item.approved ? '✅ APROBADO' : '⏳ PENDIENTE DE REVISIÓN'}
 ---------------------------------------
-_Revisado y conforme por el técnico. Ficha y tickets adjuntos procesados correctamente en el sistema._`;
+_Revisado y conforme por el técnico._`;
 
             const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
         }
 
-        // --- GENERACIÓN DEL PDF REAL CON EL TICKET ADJUNTO ---
-        function generateActualPDF(id) {
+        // --- FUNCIÓN MAESTRA: COMPARTIR ARCHIVO PDF Y FOTOS ADJUNTAS ---
+        async function sharePDFAndTickets(id) {
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
             
+            // 1. Generamos el PDF interno pero en formato de array binario (Blob)
+            const doc = buildPDFDocument(item);
+            const pdfBlob = doc.output('blob');
+            
+            // Creación del archivo físico virtual para enviar de forma nativa
+            const pdfFile = new File([pdfBlob], `Parte_Gasto_Elevia_${item.id}.pdf`, { type: 'application/pdf' });
+            
+            // 2. Intentamos usar la API nativa de compartición compartiendo el documento
+            if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+                try {
+                    await navigator.share({
+                        files: [pdfFile],
+                        title: `Parte de Gasto Elevia - ${item.id}`,
+                        text: `Adjunto el informe en PDF del gasto de tipo ${item.concept} gestionado por el técnico ${item.user.toUpperCase()}.`
+                    });
+                } catch (error) {
+                    console.log('El operario canceló el envío o hubo un corte en la comunicación.');
+                }
+            } else {
+                // Alternativa automática si están usando navegadores web de escritorio no preparados
+                alert('Tu navegador o dispositivo de escritorio no soporta la compartición directa de archivos. Se descargará el PDF automáticamente. Ábrelo y adjúntalo manualmente en WhatsApp Web.');
+                doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+            }
+        }
+
+        // --- CONSTRUCTOR COMÚN PARA DISEÑO DEL PDF ---
+        function buildPDFDocument(item) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -735,10 +789,19 @@ _Revisado y conforme por el técnico. Ficha y tickets adjuntos procesados correc
 
             doc.text("Evidencia / Ticket Adjunto:", 15, 100);
             
-            // Inyectar la imagen del ticket en la sección baja del PDF
+            // Inyección segura del Base64 de la foto cargada por la cámara en la parte baja del folio
             doc.addImage(item.image, 'JPEG', 15, 105, 120, 120);
+            return doc;
+        }
 
-            doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+        // Ejecución de la descarga manual estándar
+        function generateActualPDF(id, triggerDownload = true) {
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const item = items.find(i => i.id === id);
+            const doc = buildPDFDocument(item);
+            if(triggerDownload) {
+                doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
+            }
         }
     </script>
 </body>
