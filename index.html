@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
+    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -267,6 +268,7 @@
 
     <div class="container">
 
+        <!-- VISTA LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -285,6 +287,7 @@
             </div>
         </div>
 
+        <!-- VISTA PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="margin:0;">Mi Desglose Mensual</h3>
@@ -334,6 +337,7 @@
                 <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar Gasto</button>
                 <button class="btn btn-danger" id="btnCancelEdit" style="display:none; margin-top:8px;" onclick="cancelExpenseEdit()">Cancelar Edición</button>
                 
+                <!-- Botón dinámico de envío opcional a WhatsApp -->
                 <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp al Admin</button>
             </div>
 
@@ -343,6 +347,7 @@
             </div>
         </div>
 
+        <!-- VISTA PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
             <h3>Resumen Global (Empresa)</h3>
             <div class="grid-stats">
@@ -362,6 +367,7 @@
         </div>
     </div>
 
+    <!-- MODAL PREVISUALIZADOR HOJA PDF REAL -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0; color:white; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
@@ -390,11 +396,11 @@
         </div>
     </div>
 
+    <!-- FIREBASE MÓDULOS -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, updateDoc, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore as initFS, collection as colFS, query as qFS, orderBy as ordFS, onSnapshot as snapFS } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore as initFS, collection as colFS, query as qFS, orderBy as ordFS, onSnapshot as snapFS, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // CONFIGURACIÓN: CAMBIA ESTE NÚMERO POR EL DEL ADMINISTRADOR (Con prefijo de país, ej: 34 para España)
         const TELEFONO_ADMINISTRADOR = "34627956691"; 
@@ -418,7 +424,7 @@
         let cachedItems = []; 
         let lastWhatsAppText = ""; 
         let isInitialLoad = true; 
-        let editingExpenseId = null; // Variable para controlar si el técnico está editando un gasto
+        let editingExpenseId = null; 
         const DOMINIO_INTERNO = "@elevia.com";
 
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -497,7 +503,6 @@
 
             try {
                 if (editingExpenseId) {
-                    // MODO ACTUALIZAR / EDITAR GASTO EXISTENTE
                     const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     await upDoc(dDoc(db, "gastos", editingExpenseId), {
                         concept, amount, date, location, image: selectedTicketBase64
@@ -505,7 +510,6 @@
                     alert('Gasto actualizado correctamente.');
                     cancelExpenseEdit();
                 } else {
-                    // MODO NUEVO GASTO
                     await addDoc(colFS(db, "gastos"), {
                         user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
                     });
@@ -524,7 +528,6 @@
             } catch (e) { alert('Error de red al guardar.'); }
         };
 
-        // Activa el modo edición en el formulario del técnico
         window.startExpenseEdit = function(id) {
             const item = cachedItems.find(i => i.id === id);
             if(!item) return;
@@ -545,7 +548,6 @@
             document.getElementById('btnCancelEdit').style.display = 'block';
             document.getElementById('btnWhatsAppNotify').style.display = 'none';
             
-            // Hacer scroll suave hacia el formulario para comodidad en el móvil
             document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth' });
         };
 
