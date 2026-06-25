@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
+    <!-- Librería para generar PDFs desde el cliente -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
@@ -14,6 +15,7 @@
             --danger: #e74c3c;
             --warning: #f39c12;
             --success: #2ecc71;
+            --whatsapp: #25d366;
         }
 
         body {
@@ -138,10 +140,12 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
+            box-sizing: border-box;
         }
 
         .btn-accent { background-color: var(--accent); }
         .btn-danger { background-color: var(--danger); }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
 
         .camera-zone {
             border: 2px dashed #cbd5e1;
@@ -217,6 +221,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.85rem;
+            white-space: pre-wrap;
         }
         
         .logo-login-container {
@@ -231,6 +236,7 @@
 </head>
 <body>
 
+    <!-- NAVBAR DINÁMICA -->
     <div class="navbar">
         <img src="IMG_5467.jpeg" alt="Elevia Logo" onerror="this.style.display='none'; document.getElementById('altBrandText').style.display='block';">
         <span id="altBrandText" style="display:none; font-weight:bold; color:var(--primary); font-size:1.4rem;">elevia</span>
@@ -242,6 +248,7 @@
 
     <div class="container">
 
+        <!-- VISTA 1: LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -260,6 +267,7 @@
             </div>
         </div>
 
+        <!-- VISTA 2: PANEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <h3>Mi Desglose Mensual</h3>
             <div class="grid-stats">
@@ -272,6 +280,7 @@
             <div class="card">
                 <h3 style="margin-top:0;">Nuevo Ticket / Gasto</h3>
                 
+                <!-- Captura de Cámara/Galería -->
                 <div class="camera-zone" onclick="document.getElementById('fileInput').click()">
                     <span id="cameraPrompt">📸 Haz foto al ticket o súbelo de la galería</span>
                     <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="handleTicketUpload(event)">
@@ -313,6 +322,7 @@
             </div>
         </div>
 
+        <!-- VISTA 3: PANEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
             <div class="card">
                 <h3 style="margin-top:0;">Gestión de Usuarios</h3>
@@ -332,6 +342,7 @@
 
     </div>
 
+    <!-- MODAL DE VISUALIZACIÓN DEL PARTE -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0;">Vista Previa del Gasto / PDF</h3>
@@ -339,10 +350,10 @@
             <p><strong>Estructura del PDF para Administración:</strong></p>
             <div class="pdf-preview-box" id="pdfPreviewContent"></div>
 
-            <p style="margin-top:15px;"><strong>Ticket Adjunto:</strong></p>
+            <p style="margin-top:15px;"><strong>Ticket Adjunto (Se incluye al final del PDF):</strong></p>
             <img id="modalTicketImg" src="" style="width:100%; max-height:250px; object-fit: contain; border: 1px solid #ccc; border-radius:4px;">
 
-            <div style="display:flex; gap:10px; margin-top:20px;" id="modalActionButtons"></div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;" id="modalActionButtons"></div>
         </div>
     </div>
 
@@ -565,27 +576,30 @@
             const items = JSON.parse(localStorage.getItem('gas_items'));
             const item = items.find(i => i.id === id);
             
+            const textFormat = `===================================
+   PARTE DE GASTOS - ELEVIA ELEVADORES
+===================================
+ID PARTE: ${item.id}
+TÉCNICO: ${item.user.toUpperCase()}
+FECHA COMPROBANTE: ${item.date}
+CATEGORÍA: ${item.concept}
+DIRECCIÓN: ${item.location}
+-----------------------------------
+TOTAL LIQUIDACIÓN: ${item.amount.toFixed(2)} €
+ESTADO: ${item.approved ? 'APROBADO POR ADM' : 'PENDIENTE DE REVISIÓN'}
+===================================`;
+
             const pdfBox = document.getElementById('pdfPreviewContent');
-            pdfBox.innerHTML = `
-                ===================================<br>
-                   PARTE DE GASTOS - ELEVIA ELEVADORES<br>
-                ===================================<br>
-                ID PARTE: ${item.id}<br>
-                TÉCNICO: ${item.user.toUpperCase()}<br>
-                FECHA COMPROBANTE: ${item.date}<br>
-                CATEGORÍA: ${item.concept}<br>
-                DIRECCIÓN: ${item.location}<br>
-                -----------------------------------<br>
-                TOTAL LIQUIDACIÓN: ${item.amount.toFixed(2)} €<br>
-                ESTADO: ${item.approved ? 'APROBADO POR ADM' : 'PENDIENTE DE REVISIÓN'}<br>
-                ===================================
-            `;
+            pdfBox.textContent = textFormat;
 
             document.getElementById('modalTicketImg').src = item.image;
 
             const actionButtons = document.getElementById('modalActionButtons');
             actionButtons.innerHTML = '';
 
+            // Botón WhatsApp integrado para enviar la plantilla del PDF y aviso inmediato
+            const whatsappBtn = `<button class="btn btn-whatsapp" onclick="sendWhatsApp(${item.id})">📲 Enviar por WhatsApp a Admón.</button>`;
+            const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id})">📥 Descargar PDF Oficial</button>`;
             const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar</button>`;
 
             if(currentUser.role === 'admin') {
@@ -593,12 +607,9 @@
                     ? `<button class="btn btn-danger" onclick="toggleApprove(${item.id}, false)">Revocar Aprobación</button>`
                     : `<button class="btn btn-accent" onclick="toggleApprove(${item.id}, true)">Aprobar Gasto</button>`;
                 
-                const downloadBtn = `<button class="btn" style="background-color:#3498db;" onclick="generateActualPDF(${item.id})">Descargar PDF Oficial</button>`;
-                
-                actionButtons.innerHTML = approveBtn + downloadBtn + closeBtn;
+                actionButtons.innerHTML = approveBtn + whatsappBtn + downloadBtn + closeBtn;
             } else {
-                const downloadBtn = `<button class="btn btn-accent" onclick="generateActualPDF(${item.id})">Descargar mi PDF</button>`;
-                actionButtons.innerHTML = downloadBtn + closeBtn;
+                actionButtons.innerHTML = whatsappBtn + downloadBtn + closeBtn;
             }
 
             document.getElementById('previewModal').style.display = 'flex';
@@ -616,6 +627,30 @@
             
             closeModal();
             loadAdminData();
+        }
+
+        // --- ENVIAR DATOS FORMATEADOS POR WHATSAPP ---
+        function sendWhatsApp(id) {
+            const items = JSON.parse(localStorage.getItem('gas_items'));
+            const item = items.find(i => i.id === id);
+
+            // Estructuramos el mensaje de forma visual e idéntica a la previsualización del PDF para que lo reciban limpio
+            const message = `*PARTE DE GASTOS - ELEVIA ELEVADORES*
+---------------------------------------
+*ID Parte:* ${item.id}
+*Técnico:* ${item.user.toUpperCase()}
+*Fecha:* ${item.date}
+*Categoría:* ${item.concept}
+*Dirección:* ${item.location}
+---------------------------------------
+*TOTAL LIQUIDACIÓN:* ${item.amount.toFixed(2)} €
+*Estado:* ${item.approved ? '✅ APROBADO' : '⏳ PENDIENTE DE REVISIÓN'}
+---------------------------------------
+_Revisado y conforme por el técnico. Imagen del ticket adjunta en la base de datos de la plataforma._`;
+
+            // Codificar el texto para que sea compatible con la URL de WhatsApp
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
         }
 
         function generateActualPDF(id) {
@@ -642,6 +677,8 @@
             doc.text(`Estado: ${item.approved ? 'APROBADO' : 'PENDIENTE'}`, 15, 84);
 
             doc.text("Evidencia / Ticket Adjunto:", 15, 100);
+            
+            // Adjuntamos la imagen del ticket de forma nítida en el mismo PDF
             doc.addImage(item.image, 'JPEG', 15, 105, 120, 120);
 
             doc.save(`Parte_Gasto_Elevia_${item.id}.pdf`);
