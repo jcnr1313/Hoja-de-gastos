@@ -197,10 +197,11 @@
             background: white;
             border-radius: 6px;
             overflow: hidden;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
         }
         .admin-table th, .admin-table td {
-            padding: 10px;
+            padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
@@ -252,6 +253,23 @@
         
         .logo-login-container { text-align: center; margin-bottom: 20px; }
         .logo-login-container img { max-width: 180px; height: auto; }
+        
+        .tech-breakdown-card {
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .tech-breakdown-title {
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -353,7 +371,7 @@
             </div>
 
             <div class="card" style="padding:12px;">
-                <h3 style="margin-top:0; font-size:1.1rem;">Acumulado por Técnico</h3>
+                <h3 style="margin-top:0; font-size:1.1rem; margin-bottom:10px;">Desglose por Categorías de cada Técnico</h3>
                 <div id="adminTechniciansSummary"></div>
             </div>
 
@@ -395,7 +413,6 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore as initFS, collection as colFS, query as qFS, orderBy as ordFS, onSnapshot as snapFS, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURACIÓN: CAMBIA ESTE NÚMERO POR EL DEL ADMINISTRADOR (Con prefijo de país, ej: 34 para España)
         const TELEFONO_ADMINISTRADOR = "34627956691"; 
 
         const firebaseConfig = {
@@ -470,7 +487,6 @@
             document.getElementById(viewId).classList.add('active');
         }
 
-        // FUNCIÓN MEJORADA: Comprime la foto automáticamente a resoluciones móviles optimizadas
         window.handleTicketUpload = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -480,8 +496,6 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    
-                    // Definimos una anchura máxima de 1024px (calidad ideal para ver texto de ticket)
                     let width = img.width;
                     let height = img.height;
                     const maxWidth = 1024;
@@ -497,7 +511,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Convertimos la imagen reduciendo la calidad al 60% (formato jpeg pesa muchísimo menos que png o fotos raw)
                     selectedTicketBase64 = canvas.toDataURL('image/jpeg', 0.60);
                     
                     document.getElementById('ticketPreview').src = selectedTicketBase64;
@@ -597,12 +610,16 @@
             unsubscribeExpenses = snapFS(q, (snapshot) => {
                 let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 const container = document.getElementById('tecnicoExpensesList');
-                container.innerHTML = ''; cachedItems = [];
+                container.innerHTML = ''; 
+                cachedItems = [];
 
                 snapshot.forEach(docSnap => {
                     const item = { id: docSnap.id, ...docSnap.data() };
-                    cachedItems.push(item); totals[item.concept] += item.amount;
-                    const div = document.createElement('div'); div.className = 'part-item';
+                    cachedItems.push(item); 
+                    totals[item.concept] += item.amount;
+                    
+                    const div = document.createElement('div'); 
+                    div.className = 'part-item';
                     div.innerHTML = `
                         <div><strong>${item.concept}</strong> - <small>${item.location}</small><br><small style="color:#888;">${item.date}</small></div>
                         <div style="text-align:right;">
@@ -614,6 +631,11 @@
                     `;
                     container.appendChild(div);
                 });
+
+                if(snapshot.empty) {
+                    container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
+                }
+
                 document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
                 document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
                 document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
@@ -627,10 +649,11 @@
                 const reviewDiv = document.getElementById('adminExpensesReview');
                 const techDiv = document.getElementById('adminTechniciansSummary');
                 reviewDiv.innerHTML = ''; 
+                techDiv.innerHTML = '';
                 cachedItems = [];
                 
                 let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                let techBreakdown = {};
+                let techBreakdown = {}; // Para el informe global e individual
                 let newestItem = null;
 
                 snapshot.forEach((docSnap, index) => {
@@ -640,8 +663,15 @@
 
                     if(index === 0) newestItem = item;
 
-                    if(!techBreakdown[item.user]) techBreakdown[item.user] = 0;
-                    techBreakdown[item.user] += item.amount;
+                    // Estructura de desglose de técnicos incluyendo sus categorías
+                    if(!techBreakdown[item.user]) {
+                        techBreakdown[item.user] = {
+                            total: 0,
+                            categories: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }
+                        };
+                    }
+                    techBreakdown[item.user].total += item.amount;
+                    techBreakdown[item.user].categories[item.concept] += item.amount;
 
                     const div = document.createElement('div'); 
                     div.className = 'card';
@@ -671,16 +701,33 @@
                     reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets subidos este mes.</p></div>`;
                     techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
                 } else {
-                    let tableHtml = `<table class="admin-table"><thead><tr><th>Técnico</th><th>Total Mes</th><th>Acción</th></tr></thead><tbody>`;
+                    // Generar un bloque visual completo por técnico con sus gastos segmentados por categoría
                     for(let t in techBreakdown) {
-                        tableHtml += `<tr>
-                            <td><strong>${t.toUpperCase()}</strong></td>
-                            <td style="color:var(--danger); font-weight:bold;">${techBreakdown[t].toFixed(2)} €</td>
-                            <td><button class="btn" style="padding:4px 8px; font-size:0.75rem; width:auto; background:var(--primary);" onclick="generateConsolidatedPDF('${t}')">Generar Informe Cierre</button></td>
-                        </tr>`;
+                        const techData = techBreakdown[t];
+                        let wrapper = document.createElement('div');
+                        wrapper.className = 'tech-breakdown-card';
+                        
+                        let html = `
+                            <div class="tech-breakdown-title">${t.toUpperCase()} (Total: <span style="color:var(--danger);">${techData.total.toFixed(2)} €</span>)</div>
+                            <table class="admin-table" style="margin-bottom:8px; box-shadow:none; border: 1px solid #edf2f7;">
+                                <thead>
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th>Gastado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Media Dieta</td><td><strong>${techData.categories['Media Dieta'].toFixed(2)} €</strong></td></tr>
+                                    <tr><td>Gasolina</td><td><strong>${techData.categories['Gasolina'].toFixed(2)} €</strong></td></tr>
+                                    <tr><td>Parking</td><td><strong>${techData.categories['Parking'].toFixed(2)} €</strong></td></tr>
+                                    <tr><td>Material</td><td><strong>${techData.categories['Material'].toFixed(2)} €</strong></td></tr>
+                                </tbody>
+                            </table>
+                            <button class="btn" style="padding:6px 10px; font-size:0.8rem; width:100%; background:var(--primary);" onclick="generateConsolidatedPDF('${t}')">📥 Generar Informe Cierre</button>
+                        `;
+                        wrapper.innerHTML = html;
+                        techDiv.appendChild(wrapper);
                     }
-                    tableHtml += `</tbody></table>`;
-                    techDiv.innerHTML = tableHtml;
                 }
 
                 document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
