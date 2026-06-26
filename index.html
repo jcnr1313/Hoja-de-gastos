@@ -411,7 +411,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore as initFS, collection as colFS, query as qFS, orderBy as ordFS, onSnapshot as snapFS, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const TELEFONO_ADMINISTRADOR = "34627956691"; 
 
@@ -606,16 +606,25 @@
         };
 
         function listenTecnicoExpenses(username) {
-            const q = qFS(colFS(db, "gastos"), where("user", "==", username), ordFS("createdAt", "desc"));
+            // Quitamos el ordFS nativo para evitar fallos de indexación silenciosos en Firebase
+            const q = qFS(colFS(db, "gastos"), where("user", "==", username));
             unsubscribeExpenses = snapFS(q, (snapshot) => {
                 let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 const container = document.getElementById('tecnicoExpensesList');
                 container.innerHTML = ''; 
                 cachedItems = [];
 
+                // Almacenamos temporalmente para ordenar por código de forma segura
+                let localItems = [];
                 snapshot.forEach(docSnap => {
-                    const item = { id: docSnap.id, ...docSnap.data() };
-                    cachedItems.push(item); 
+                    localItems.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Ordenamos por fecha de creación descendente (los más nuevos primero)
+                localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                cachedItems = localItems;
+
+                cachedItems.forEach(item => {
                     totals[item.concept] += item.amount;
                     
                     const div = document.createElement('div'); 
@@ -632,10 +641,11 @@
                     container.appendChild(div);
                 });
 
-                if(snapshot.empty) {
+                if(cachedItems.length === 0) {
                     container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
                 }
 
+                // Pintamos los totales arriba en tiempo real
                 document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
                 document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
                 document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
@@ -644,26 +654,28 @@
         }
 
         function listenAllExpenses() {
-            const q = qFS(colFS(db, "gastos"), ordFS("createdAt", "desc"));
+            const q = colFS(db, "gastos"); // Obtenemos la colección directa sin provocar fallos de indexación
             unsubscribeExpenses = snapFS(q, (snapshot) => {
                 const reviewDiv = document.getElementById('adminExpensesReview');
                 const techDiv = document.getElementById('adminTechniciansSummary');
                 reviewDiv.innerHTML = ''; 
                 techDiv.innerHTML = '';
-                cachedItems = [];
+                
+                let localItems = [];
+                snapshot.forEach(docSnap => {
+                    localItems.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                cachedItems = localItems;
                 
                 let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                let techBreakdown = {}; // Para el informe global e individual
-                let newestItem = null;
+                let techBreakdown = {}; 
+                let newestItem = cachedItems[0] || null;
 
-                snapshot.forEach((docSnap, index) => {
-                    const item = { id: docSnap.id, ...docSnap.data() };
-                    cachedItems.push(item);
+                cachedItems.forEach((item, index) => {
                     globalTotals[item.concept] += item.amount;
 
-                    if(index === 0) newestItem = item;
-
-                    // Estructura de desglose de técnicos incluyendo sus categorías
                     if(!techBreakdown[item.user]) {
                         techBreakdown[item.user] = {
                             total: 0,
@@ -697,11 +709,10 @@
                 }
                 isInitialLoad = false; 
 
-                if(snapshot.empty) {
+                if(cachedItems.length === 0) {
                     reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets subidos este mes.</p></div>`;
                     techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
                 } else {
-                    // Generar un bloque visual completo por técnico con sus gastos segmentados por categoría
                     for(let t in techBreakdown) {
                         const techData = techBreakdown[t];
                         let wrapper = document.createElement('div');
