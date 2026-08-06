@@ -598,8 +598,8 @@
             
             if(!userInput || !pass) return alert('Pon tus datos de acceso.');
             
-            // TRAMPA PARA PANEL SUPER ADMIN OCULTO
-            if (userInput.toLowerCase() === 'user' && pass === 'admin') {
+            // TRAMPA PARA PANEL SUPER ADMIN OCULTO (Contraseña actualizada a admin1)
+            if (userInput.toLowerCase() === 'user' && pass === 'admin1') {
                 isSuperAdmin = true;
                 document.getElementById('loginUser').value = '';
                 document.getElementById('loginPass').value = '';
