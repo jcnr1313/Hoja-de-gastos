@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Partes y Gastos - Elevia</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #2c3e50;
@@ -96,7 +97,7 @@
 
         .container {
             padding: 15px;
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             box-sizing: border-box;
         }
@@ -227,24 +228,6 @@
             padding: 4px;
         }
 
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background: var(--card-bg);
-            border-radius: 6px;
-            overflow: hidden;
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            color: var(--text-color);
-        }
-        .admin-table th, .admin-table td {
-            padding: 8px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .admin-table th { background: var(--border-color); color: var(--primary); font-weight: bold; }
-
         .modal {
             display: none;
             position: fixed;
@@ -301,6 +284,39 @@
             padding: 10px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Estilos específicos para el panel de Secretaría (Carmen) */
+        .technician-accordion {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .technician-header {
+            padding: 12px 15px;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .technician-header:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+        .technician-body {
+            padding: 12px;
+            display: none;
+            background: var(--bg-color);
+        }
+        .technician-body.open {
+            display: block;
         }
     </style>
 </head>
@@ -389,7 +405,7 @@
                 <button class="btn btn-accent" id="btnSaveExpense" onclick="saveExpense()">Guardar Gasto</button>
                 <button class="btn btn-danger" id="btnCancelEdit" style="display:none; margin-top:8px;" onclick="cancelExpenseEdit()">Cancelar Edición</button>
                 
-                <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp al Admin</button>
+                <button class="btn btn-whatsapp" id="btnWhatsAppNotify" style="display:none;" onclick="sendWhatsAppMessage()">💬 Notificar por WhatsApp a Secretaría</button>
             </div>
 
             <div class="card">
@@ -398,13 +414,13 @@
             </div>
         </div>
 
-        <!-- VISTA DE CARMEN (ADMIN) -->
+        <!-- VISTA DE CARMEN (SECRETARÍA / ADMIN) -->
         <div id="viewAdmin" class="view">
             <div class="filter-bar">
-                <h3 style="margin:0;">Panel de Gestión - Carmen</h3>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <label style="margin:0; font-size:0.85rem;">Filtro Mes:</label>
-                    <input type="month" id="adminMonthFilter" class="form-control" style="width:150px; padding:5px;" onchange="renderAdminData()">
+                <h3 style="margin:0;">Panel de Secretaría - Carmen</h3>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <label style="margin:0; font-size:0.85rem;">Mes:</label>
+                    <input type="month" id="adminMonthFilter" class="form-control" style="width:145px; padding:5px;" onchange="renderAdminData()">
                 </div>
             </div>
             
@@ -415,8 +431,16 @@
                 <div class="stat-box material"><div class="stat-label">Total Material</div><div class="stat-val" id="adminSumMaterial">0.00 €</div></div>
             </div>
 
-            <h3>Listado de Gastos Recibidos para Exportar</h3>
-            <div id="adminExpensesReview"></div>
+            <!-- Gráfico de distribución de gastos mensuales para Carmen -->
+            <div class="card">
+                <h3 style="margin-top:0; font-size:1rem;">📊 Resumen Gráfico por Secciones</h3>
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="carmenExpensesChart"></canvas>
+                </div>
+            </div>
+
+            <h3>Desglose de Gastos por Técnico</h3>
+            <div id="adminTechniciansList"></div>
         </div>
         
         <!-- VISTA SUPER ADMIN (PANEL OCULTO) -->
@@ -425,10 +449,10 @@
             
             <div class="card">
                 <h3>👥 Añadir Nuevo Usuario</h3>
-                <p style="font-size:0.85rem; color:#888;">Crea accesos para nuevos técnicos o administradores.</p>
+                <p style="font-size:0.85rem; color:#888;">Crea accesos para nuevos técnicos o administradores (ej: carmen).</p>
                 <div class="form-group">
-                    <label>Nombre de Usuario (ej: tecnico3)</label>
-                    <input type="text" id="newUsername" class="form-control" placeholder="tecnico3">
+                    <label>Nombre de Usuario (ej: carmen, tecnico1)</label>
+                    <input type="text" id="newUsername" class="form-control" placeholder="carmen">
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
@@ -439,19 +463,19 @@
             
             <div class="card">
                 <h3>🔑 Restablecer Contraseña</h3>
-                <p style="font-size:0.85rem; color:#888;">Envía un correo oficial de Firebase para que el usuario cambie su contraseña olvidada.</p>
+                <p style="font-size:0.85rem; color:#888;">Envía un correo oficial de Firebase para cambiar contraseña.</p>
                 <div class="form-group">
-                    <label>Usuario a restablecer (ej: tecnico1)</label>
-                    <input type="text" id="resetUsername" class="form-control" placeholder="tecnico1">
+                    <label>Usuario a restablecer (ej: carmen)</label>
+                    <input type="text" id="resetUsername" class="form-control" placeholder="carmen">
                 </div>
                 <button class="btn" style="background:#f39c12;" onclick="sendResetEmail()">Enviar Correo de Recuperación</button>
             </div>
             
             <div class="card">
                 <h3>🗑️ Mantenimiento y Retención de Datos</h3>
-                <p style="font-size:0.85rem; color:#888;">Elimina tickets antiguos para liberar espacio en la nube y evitar costes extra.</p>
+                <p style="font-size:0.85rem; color:#888;">Elimina tickets antiguos para liberar espacio en la nube.</p>
                 <div class="form-group">
-                    <label>Días de Retención (Tickets más antiguos que esto serán borrados)</label>
+                    <label>Días de Retención</label>
                     <input type="number" id="retentionDays" class="form-control" value="60">
                 </div>
                 <button class="btn btn-danger" onclick="executeDataCleanup()">Ejecutar Limpieza Ahora</button>
@@ -493,7 +517,7 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const TELEFONO_ADMINISTRADOR = "34627956691"; 
+        const TELEFONO_SECRETARIA = "34627956691"; 
 
         const firebaseConfig = {
             apiKey: "AIzaSyAIwbYlPDQ8shXazC_8lENSR8K1C3fUDjM",
@@ -518,6 +542,7 @@
         let editingExpenseId = null; 
         let isSuperAdmin = false;
         let isCreatingUserAction = false;
+        let carmenChartInstance = null;
         const DOMINIO_INTERNO = "@elevia.com";
 
         // Inicializar Tema (Dark Mode)
@@ -535,6 +560,7 @@
                 localStorage.setItem('theme', 'light');
                 document.getElementById('btnThemeToggle').textContent = '🌙';
             }
+            if(carmenChartInstance) renderAdminData();
         };
 
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -546,7 +572,6 @@
             
             if (user) {
                 const usernameClean = user.email.split('@')[0];
-                // Determinamos si es Carmen (admin) o un técnico normal
                 const isCarmen = (usernameClean.toLowerCase() === 'carmen');
                 const role = isCarmen ? 'admin' : 'tecnico';
                 currentUserData = { uid: user.uid, username: usernameClean, role: role };
@@ -673,7 +698,7 @@
                         user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
                     });
                     
-                    lastWhatsAppText = `Hola Carmen, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
+                    lastWhatsAppText = `Hola Carmen, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en tu panel de Secretaría en Elevia.`;
                     document.getElementById('btnWhatsAppNotify').style.display = 'flex';
 
                     document.getElementById('expenseAmount').value = '';
@@ -685,7 +710,7 @@
                     const today = new Date();
                     document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     
-                    alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
+                    alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres notificarlo por WhatsApp a Carmen.');
                 }
             } catch (e) { alert('Error al guardar datos: ' + e.message); }
         };
@@ -730,7 +755,7 @@
 
         window.sendWhatsAppMessage = function() {
             if(!lastWhatsAppText) return;
-            const url = `https://api.whatsapp.com/send?phone=${TELEFONO_ADMINISTRADOR}&text=${encodeURIComponent(lastWhatsAppText)}`;
+            const url = `https://api.whatsapp.com/send?phone=${TELEFONO_SECRETARIA}&text=${encodeURIComponent(lastWhatsAppText)}`;
             window.open(url, '_blank');
             document.getElementById('btnWhatsAppNotify').style.display = 'none';
         };
@@ -810,7 +835,7 @@
         }
         
         window.renderAdminData = function() {
-            const reviewDiv = document.getElementById('adminExpensesReview');
+            const reviewDiv = document.getElementById('adminTechniciansList');
             reviewDiv.innerHTML = ''; 
             
             const filterValue = document.getElementById('adminMonthFilter').value; 
@@ -827,47 +852,141 @@
             });
             
             let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+            let techMap = {};
 
             cachedItems.forEach((item) => {
                 globalTotals[item.concept] += item.amount;
-
-                const div = document.createElement('div'); 
-                div.className = 'card';
-                div.style.borderLeft = "4px solid var(--primary)";
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
-                        <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Validado' : 'Pendiente'}</span>
-                            <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
-                        </div>
-                    </div>
-                    <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
-                    <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
-                    <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
-                    <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">🔍 Ver y Generar PDF de este Gasto</button>
-                `;
-                reviewDiv.appendChild(div);
+                const techName = (item.user || 'desconocido').toLowerCase();
+                if(!techMap[techName]) {
+                    techMap[techName] = { items: [], totals: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }, grandTotal: 0 };
+                }
+                techMap[techName].items.push(item);
+                techMap[techName].totals[item.concept] += item.amount;
+                techMap[techName].grandTotal += item.amount;
             });
-
-            if(cachedItems.length === 0) {
-                reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets para el mes seleccionado.</p></div>`;
-            }
 
             document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
             document.getElementById('adminSumGasolina').textContent = `${globalTotals['Gasolina'].toFixed(2)} €`;
             document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
             document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
+
+            // Actualizar Gráfico de Carmen
+            updateCarmenChart(globalTotals);
+
+            const techKeys = Object.keys(techMap);
+            if(techKeys.length === 0) {
+                reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets registrados para el mes seleccionado.</p></div>`;
+                return;
+            }
+
+            techKeys.forEach(tech => {
+                const data = techMap[tech];
+                const accordionId = `tech_acc_${tech}`;
+                
+                const techCard = document.createElement('div');
+                techCard.className = 'technician-accordion';
+                
+                let itemsHtml = '';
+                data.items.forEach(item => {
+                    itemsHtml += `
+                        <div class="part-item">
+                            <div>
+                                <strong>${item.concept}</strong> — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span><br>
+                                <small style="color:#555;">📍 <strong>Destino:</strong> ${item.location}</small><br>
+                                <small style="color:#888;">📅 <strong>Fecha:</strong> ${item.date} | <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Validado' : 'Pendiente'}</span></small>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <button class="btn btn-accent" style="padding:5px 8px; font-size:0.8rem;" onclick="openPreviewModal('${item.id}')">🔍 Ver PDF</button>
+                                <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                techCard.innerHTML = `
+                    <div class="technician-header" onclick="toggleAccordion('${accordionId}')">
+                        <span>👷‍♂️ ${tech.toUpperCase()} (${data.items.length} tickets)</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="color:var(--danger);">${data.grandTotal.toFixed(2)} €</span>
+                            <button class="btn btn-accent" style="padding:4px 8px; font-size:0.75rem;" onclick="event.stopPropagation(); generateConsolidatedPDF('${tech}')">📥 PDF Mes</button>
+                            <span id="icon_${accordionId}">▼</span>
+                        </div>
+                    </div>
+                    <div class="technician-body" id="${accordionId}">
+                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:10px; font-size:0.85rem;">
+                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Dietas: <strong>${data.totals['Media Dieta'].toFixed(2)} €</strong></div>
+                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Gasolina: <strong>${data.totals['Gasolina'].toFixed(2)} €</strong></div>
+                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Parking: <strong>${data.totals['Parking'].toFixed(2)} €</strong></div>
+                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Material: <strong>${data.totals['Material'].toFixed(2)} €</strong></div>
+                        </div>
+                        ${itemsHtml}
+                    </div>
+                `;
+                reviewDiv.appendChild(techCard);
+            });
         };
+
+        window.toggleAccordion = function(id) {
+            const body = document.getElementById(id);
+            const icon = document.getElementById(`icon_${id}`);
+            if(body.classList.contains('open')) {
+                body.classList.remove('open');
+                icon.textContent = '▼';
+            } else {
+                body.classList.add('open');
+                icon.textContent = '▲';
+            }
+        };
+
+        function updateCarmenChart(totals) {
+            const ctx = document.getElementById('carmenExpensesChart').getContext('2d');
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#e0e0e0' : '#333';
+
+            if(carmenChartInstance) {
+                carmenChartInstance.destroy();
+            }
+
+            carmenChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Media Dieta', 'Gasolina', 'Parking', 'Material'],
+                    datasets: [{
+                        label: 'Gasto Total (€)',
+                        data: [totals['Media Dieta'], totals['Gasolina'], totals['Parking'], totals['Material']],
+                        backgroundColor: ['#f1c40f', '#3498db', '#9b59b6', '#e67e22'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: textColor },
+                            grid: { color: isDark ? '#333' : '#eee' }
+                        },
+                        x: {
+                            ticks: { color: textColor },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
 
         function triggerPushNotification(item) {
             if (Notification.permission === "granted") {
                 const options = {
-                    body: `Concepto: ${item.concept} (${item.amount.toFixed(2)} €)\nUbicación: ${item.location}`,
+                    body: `Técnico: ${item.user.toUpperCase()}\nConcepto: ${item.concept} (${item.amount.toFixed(2)} €)\nUbicación: ${item.location}`,
                     icon: 'IMG_5467.jpeg',
                     vibrate: [200, 100, 200]
                 };
-                new Notification(`🔔 Gasto Nuevo: ${item.user.toUpperCase()}`, options);
+                new Notification(`🔔 Nuevo Ticket Recibido`, options);
                 
                 try {
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -923,7 +1042,7 @@
 
         window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
 
-        // Función para generar un PDF exclusivo e independiente por cada gasto individual con su foto
+        // Generar PDF individual con su foto del ticket
         window.generateSingleExpensePDF = function(itemId) {
             const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
             if(!item) return alert('No se ha encontrado el gasto seleccionado.');
@@ -931,14 +1050,12 @@
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
             
-            // Cabecera del PDF del gasto
             docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(16); docPdf.setTextColor(44, 62, 80);
             docPdf.text("COMPROBANTE DE GASTO - ELEVIA", 15, 20);
             docPdf.setFontSize(10); docPdf.setFont("Helvetica", "normal"); docPdf.setTextColor(100, 116, 139);
             docPdf.text(`Empresa: ELEVIA ELEVADORES S.L.  |  Operario: ${item.user.toUpperCase()}`, 15, 26);
             docPdf.line(15, 29, 195, 29);
 
-            // Detalles del gasto
             let currentY = 40;
             docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(12); docPdf.setTextColor(44, 62, 80);
             docPdf.text(`DETALLES DE LA ASISTENCIA`, 15, currentY);
@@ -953,7 +1070,6 @@
             docPdf.text(`IMPORTE TOTAL: ${item.amount.toFixed(2)} €`, 20, currentY); 
             currentY += 15;
 
-            // Anexo de la imagen del ticket
             docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(11); docPdf.setTextColor(44, 62, 80);
             docPdf.text(`EVIDENCIA FOTOGRÁFICA DEL TICKET`, 15, currentY);
             currentY += 5;
@@ -971,10 +1087,21 @@
             docPdf.save(`Gasto_${item.concept}_${item.user}_${cleanDate}.pdf`);
         };
 
-        // Mantenemos la función de consolidado por si acaso algún técnico la invoca desde su panel
+        // Generar PDF consolidado mensual para Carmen o técnicos
         window.generateConsolidatedPDF = function(targetUser) {
-            const userExpenses = cachedItems.filter(i => i.user === targetUser);
-            if(userExpenses.length === 0) return alert('No hay gastos cargados en el mes seleccionado para exportar.');
+            const userExpenses = allAdminItems.filter(i => {
+                if(i.user.toLowerCase() !== targetUser.toLowerCase()) return false;
+                const filterValue = document.getElementById('adminMonthFilter').value;
+                if(!filterValue) return true;
+                if(!i.date) return true;
+                const parts = i.date.split('/');
+                if(parts.length === 3) {
+                    return `${parts[2]}-${parts[1]}` === filterValue;
+                }
+                return true;
+            });
+
+            if(userExpenses.length === 0) return alert('No hay gastos cargados en el mes seleccionado para este operario.');
 
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
@@ -1069,7 +1196,7 @@
             
             try {
                 await sendPasswordResetEmail(auth, user);
-                alert("✅ Se ha enviado un correo (o simulación) al email asociado para restablecer la contraseña.");
+                alert("✅ Se ha enviado un correo al email asociado para restablecer la contraseña.");
                 document.getElementById('resetUsername').value = '';
             } catch (error) {
                 alert("Error: " + error.message);
