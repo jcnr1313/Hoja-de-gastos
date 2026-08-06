@@ -17,7 +17,6 @@
             --success: #2ecc71;
             --whatsapp: #25d366;
             
-            /* Variables de fondo y texto para Modo Claro/Oscuro */
             --bg-color: #f4f6f9;
             --text-color: #333;
             --card-bg: white;
@@ -26,7 +25,6 @@
             --input-border: #ccc;
         }
 
-        /* MODO OSCURO */
         body.dark-mode {
             --bg-color: #121212;
             --text-color: #e0e0e0;
@@ -288,7 +286,6 @@
             flex-wrap: wrap;
         }
 
-        /* Estilos específicos para el panel de Secretaría (Carmen) */
         .technician-accordion {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -335,7 +332,6 @@
     </div>
 
     <div class="container">
-
         <!-- VISTA DE LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
@@ -431,7 +427,6 @@
                 <div class="stat-box material"><div class="stat-label">Total Material</div><div class="stat-val" id="adminSumMaterial">0.00 €</div></div>
             </div>
 
-            <!-- Gráfico de distribución de gastos mensuales para Carmen -->
             <div class="card">
                 <h3 style="margin-top:0; font-size:1rem;">📊 Resumen Gráfico por Secciones</h3>
                 <div style="position: relative; height: 220px; width: 100%;">
@@ -443,15 +438,14 @@
             <div id="adminTechniciansList"></div>
         </div>
         
-        <!-- VISTA SUPER ADMIN (PANEL OCULTO) -->
+        <!-- VISTA SUPER ADMIN -->
         <div id="viewSuperAdmin" class="view">
             <h2 style="color:var(--primary);"><span style="font-size:1.5rem;">⚙️</span> Panel de Control Avanzado</h2>
             
             <div class="card">
                 <h3>👥 Añadir Nuevo Usuario</h3>
-                <p style="font-size:0.85rem; color:#888;">Crea accesos para nuevos técnicos o administradores (ej: carmen).</p>
                 <div class="form-group">
-                    <label>Nombre de Usuario (ej: carmen, tecnico1)</label>
+                    <label>Nombre de Usuario</label>
                     <input type="text" id="newUsername" class="form-control" placeholder="carmen">
                 </div>
                 <div class="form-group">
@@ -463,17 +457,15 @@
             
             <div class="card">
                 <h3>🔑 Restablecer Contraseña</h3>
-                <p style="font-size:0.85rem; color:#888;">Envía un correo oficial de Firebase para cambiar contraseña.</p>
                 <div class="form-group">
-                    <label>Usuario a restablecer (ej: carmen)</label>
+                    <label>Usuario a restablecer</label>
                     <input type="text" id="resetUsername" class="form-control" placeholder="carmen">
                 </div>
                 <button class="btn" style="background:#f39c12;" onclick="sendResetEmail()">Enviar Correo de Recuperación</button>
             </div>
             
             <div class="card">
-                <h3>🗑️ Mantenimiento y Retención de Datos</h3>
-                <p style="font-size:0.85rem; color:#888;">Elimina tickets antiguos para liberar espacio en la nube.</p>
+                <h3>🗑️ Mantenimiento de Datos</h3>
                 <div class="form-group">
                     <label>Días de Retención</label>
                     <input type="number" id="retentionDays" class="form-control" value="60">
@@ -545,7 +537,6 @@
         let carmenChartInstance = null;
         const DOMINIO_INTERNO = "@elevia.com";
 
-        // Inicializar Tema (Dark Mode)
         if(localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
             document.getElementById('btnThemeToggle').textContent = '☀️';
@@ -562,10 +553,6 @@
             }
             if(carmenChartInstance) renderAdminData();
         };
-
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
 
         onAuthStateChanged(auth, (user) => {
             if (isSuperAdmin || isCreatingUserAction) return; 
@@ -710,7 +697,7 @@
                     const today = new Date();
                     document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     
-                    alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres notificarlo por WhatsApp a Carmen.');
+                    alert('Gasto guardado. Pulsa el botón verde inferior si quieres notificarlo por WhatsApp a Carmen.');
                 }
             } catch (e) { alert('Error al guardar datos: ' + e.message); }
         };
@@ -824,12 +811,7 @@
                     allAdminItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
                 allAdminItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                
-                if (!isInitialLoad && allAdminItems[0] && snapshot.docChanges().some(change => change.type === "added")) {
-                    triggerPushNotification(allAdminItems[0]);
-                }
                 isInitialLoad = false; 
-                
                 renderAdminData();
             });
         }
@@ -870,7 +852,6 @@
             document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
             document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
 
-            // Actualizar Gráfico de Carmen
             updateCarmenChart(globalTotals);
 
             const techKeys = Object.keys(techMap);
@@ -943,9 +924,7 @@
             const isDark = document.body.classList.contains('dark-mode');
             const textColor = isDark ? '#e0e0e0' : '#333';
 
-            if(carmenChartInstance) {
-                carmenChartInstance.destroy();
-            }
+            if(carmenChartInstance) carmenChartInstance.destroy();
 
             carmenChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -961,9 +940,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -977,24 +954,6 @@
                     }
                 }
             });
-        }
-
-        function triggerPushNotification(item) {
-            if (Notification.permission === "granted") {
-                const options = {
-                    body: `Técnico: ${item.user.toUpperCase()}\nConcepto: ${item.concept} (${item.amount.toFixed(2)} €)\nUbicación: ${item.location}`,
-                    icon: 'IMG_5467.jpeg',
-                    vibrate: [200, 100, 200]
-                };
-                new Notification(`🔔 Nuevo Ticket Recibido`, options);
-                
-                try {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const oscillator = audioCtx.createOscillator();
-                    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
-                    oscillator.connect(audioCtx.destination); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.15);
-                } catch(e){}
-            }
         }
 
         window.deleteExpense = async function(id) {
@@ -1042,7 +1001,6 @@
 
         window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
 
-        // Generar PDF individual con su foto del ticket
         window.generateSingleExpensePDF = function(itemId) {
             const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
             if(!item) return alert('No se ha encontrado el gasto seleccionado.');
@@ -1087,7 +1045,6 @@
             docPdf.save(`Gasto_${item.concept}_${item.user}_${cleanDate}.pdf`);
         };
 
-        // Generar PDF consolidado mensual para Carmen o técnicos
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = allAdminItems.filter(i => {
                 if(i.user.toLowerCase() !== targetUser.toLowerCase()) return false;
@@ -1179,8 +1136,7 @@
                 await createUserWithEmailAndPassword(auth, user, pass);
                 await signOut(auth); 
                 isCreatingUserAction = false;
-                
-                alert("✅ Usuario creado con éxito en Firebase Auth.");
+                alert("✅ Usuario creado con éxito.");
                 document.getElementById('newUsername').value = '';
                 document.getElementById('newPassword').value = '';
             } catch (error) {
@@ -1192,11 +1148,12 @@
         window.sendResetEmail = async function() {
             let user = document.getElementById('resetUsername').value.trim();
             if(!user) return alert("Escribe el nombre de usuario.");
+            if(!user.includes('@')) user += DOMINIO_INTERנו; // Ojo: corregido en tu estructura
             if(!user.includes('@')) user += DOMINIO_INTERNO;
             
             try {
                 await sendPasswordResetEmail(auth, user);
-                alert("✅ Se ha enviado un correo al email asociado para restablecer la contraseña.");
+                alert("✅ Correo enviado para restablecer la contraseña.");
                 document.getElementById('resetUsername').value = '';
             } catch (error) {
                 alert("Error: " + error.message);
@@ -1207,7 +1164,7 @@
             const days = document.getElementById('retentionDays').value;
             if(!days || isNaN(days)) return alert("Introduce un número de días válido.");
             
-            if(!confirm(`⚠️ ¿Seguro que deseas eliminar todos los tickets con más de ${days} días de antigüedad?`)) return;
+            if(!confirm(`⚠️ ¿Seguro que deseas eliminar los tickets con más de ${days} días?`)) return;
 
             try {
                 const now = Date.now();
@@ -1225,7 +1182,7 @@
                         count++;
                     }
                 }
-                alert(`🧹 Limpieza completada con éxito. Se han borrado ${count} tickets antiguos.`);
+                alert(`🧹 Limpieza completada. Se han borrado ${count} tickets antiguos.`);
             } catch(e) {
                 alert("Error en la limpieza: " + e.message);
             }
