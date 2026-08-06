@@ -15,23 +15,44 @@
             --warning: #f39c12;
             --success: #2ecc71;
             --whatsapp: #25d366;
+            
+            /* Variables de fondo y texto para Modo Claro/Oscuro */
+            --bg-color: #f4f6f9;
+            --text-color: #333;
+            --card-bg: white;
+            --border-color: #eee;
+            --input-bg: white;
+            --input-border: #ccc;
+        }
+
+        /* MODO OSCURO */
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --border-color: #333;
+            --input-bg: #2c2c2c;
+            --input-border: #555;
+            --primary: #4ab3cf; /* Un azul más claro para contrastar */
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f6f9;
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .navbar {
-            background-color: white;
+            background-color: var(--card-bg);
             padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
         }
 
         .navbar img {
@@ -44,12 +65,21 @@
             align-items: center;
             gap: 10px;
         }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+            color: var(--text-color);
+        }
 
         .user-tag {
             font-size: 0.9rem;
             font-weight: bold;
             color: var(--primary);
-            background: #edf2f7;
+            background: var(--border-color);
             padding: 4px 8px;
             border-radius: 4px;
         }
@@ -75,11 +105,13 @@
         .view.active { display: block; }
 
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: background-color 0.3s;
+            border: 1px solid var(--border-color);
         }
 
         .grid-stats {
@@ -90,11 +122,14 @@
         }
 
         .stat-box {
-            background: white;
+            background: var(--card-bg);
             padding: 12px;
             border-radius: 6px;
             border-left: 4px solid var(--accent);
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .stat-box.gasolina { border-left-color: #3498db; }
@@ -117,7 +152,9 @@
         .form-control, select {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 1rem;
@@ -149,7 +186,7 @@
             border-radius: 8px;
             padding: 20px;
             text-align: center;
-            background: #f8fafc;
+            background: var(--bg-color);
             cursor: pointer;
             margin-bottom: 15px;
         }
@@ -174,7 +211,7 @@
         .badge-approved { background-color: var(--success); }
 
         .part-item {
-            border-bottom: 1px solid #edf2f7;
+            border-bottom: 1px solid var(--border-color);
             padding: 10px 0;
             display: flex;
             justify-content: space-between;
@@ -194,18 +231,19 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 6px;
             overflow: hidden;
             font-size: 0.85rem;
             margin-bottom: 15px;
+            color: var(--text-color);
         }
         .admin-table th, .admin-table td {
             padding: 8px 10px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
         }
-        .admin-table th { background: #edf2f7; color: var(--primary); font-weight: bold; }
+        .admin-table th { background: var(--border-color); color: var(--primary); font-weight: bold; }
 
         .modal {
             display: none;
@@ -219,7 +257,7 @@
             box-sizing: border-box;
         }
         .modal-content {
-            background: #f0f2f5;
+            background: var(--card-bg);
             border-radius: 12px;
             max-width: 100%;
             width: 550px;
@@ -229,12 +267,12 @@
             box-sizing: border-box;
         }
         .pdf-page-mock {
-            background: white;
+            background: white; /* Siempre blanco para simular papel */
             border: 1px solid #bbb;
             padding: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            color: #222;
+            color: #222; /* Siempre oscuro en la previsualización del PDF */
             margin-bottom: 15px;
         }
         .pdf-mock-header {
@@ -246,7 +284,7 @@
         .empty-dashboard-state {
             text-align: center;
             padding: 30px 15px;
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 12px;
             border: 1px dashed #cbd5e1;
         }
@@ -255,8 +293,8 @@
         .logo-login-container img { max-width: 180px; height: auto; }
         
         .tech-breakdown-card {
-            background: #fdfdfd;
-            border: 1px solid #e2e8f0;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 10px;
             margin-bottom: 10px;
@@ -264,11 +302,22 @@
         .tech-breakdown-title {
             font-weight: bold;
             color: var(--primary);
-            border-bottom: 1px solid #edf2f7;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 4px;
             margin-bottom: 6px;
             text-transform: uppercase;
             font-size: 0.9rem;
+        }
+        
+        .filter-bar {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
         }
     </style>
 </head>
@@ -277,14 +326,18 @@
     <div class="navbar">
         <img src="IMG_5467.jpeg" alt="Elevia Logo" onerror="this.style.display='none'; document.getElementById('altBrandText').style.display='block';">
         <span id="altBrandText" style="display:none; font-weight:bold; color:var(--primary); font-size:1.4rem;">elevia</span>
-        <div class="nav-user-info" id="navUserInfo" style="display:none;">
-            <span class="user-tag" id="navUserTag">Técnico</span>
-            <button class="logout-btn" onclick="logout()">Salir</button>
+        <div class="nav-user-info">
+            <button class="theme-toggle" onclick="toggleDarkMode()" id="btnThemeToggle">🌙</button>
+            <div id="navUserInfo" style="display:none; align-items: center; gap:10px;">
+                <span class="user-tag" id="navUserTag">Técnico</span>
+                <button class="logout-btn" onclick="logout()">Salir</button>
+            </div>
         </div>
     </div>
 
     <div class="container">
 
+        <!-- VISTA DE LOGIN -->
         <div id="viewLogin" class="view active">
             <div class="card" style="margin-top: 20px;">
                 <div class="logo-login-container">
@@ -303,6 +356,7 @@
             </div>
         </div>
 
+        <!-- VISTA DEL TÉCNICO -->
         <div id="viewTecnico" class="view">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 style="margin:0;">Mi Desglose Mensual</h3>
@@ -361,8 +415,16 @@
             </div>
         </div>
 
+        <!-- VISTA DEL ADMINISTRADOR -->
         <div id="viewAdmin" class="view">
-            <h3>Resumen Global (Empresa)</h3>
+            <div class="filter-bar">
+                <h3 style="margin:0;">Resumen Global</h3>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <label style="margin:0; font-size:0.85rem;">Filtro Mes:</label>
+                    <input type="month" id="adminMonthFilter" class="form-control" style="width:150px; padding:5px;" onchange="renderAdminData()">
+                </div>
+            </div>
+            
             <div class="grid-stats">
                 <div class="stat-box dieta"><div class="stat-label">Total Dietas</div><div class="stat-val" id="adminSumDieta">0.00 €</div></div>
                 <div class="stat-box gasolina"><div class="stat-label">Total Gasolina</div><div class="stat-val" id="adminSumGasolina">0.00 €</div></div>
@@ -378,11 +440,51 @@
             <h3>Historial General de Tickets</h3>
             <div id="adminExpensesReview"></div>
         </div>
+        
+        <!-- VISTA SUPER ADMIN (PANEL OCULTO) -->
+        <div id="viewSuperAdmin" class="view">
+            <h2 style="color:var(--primary);"><span style="font-size:1.5rem;">⚙️</span> Panel de Control Avanzado</h2>
+            
+            <div class="card">
+                <h3>👥 Añadir Nuevo Usuario</h3>
+                <p style="font-size:0.85rem; color:#888;">Crea accesos para nuevos técnicos o administradores.</p>
+                <div class="form-group">
+                    <label>Nombre de Usuario (ej: tecnico3)</label>
+                    <input type="text" id="newUsername" class="form-control" placeholder="tecnico3">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="Mínimo 6 caracteres">
+                </div>
+                <button class="btn btn-accent" onclick="createNewUser()">Crear Usuario en Firebase</button>
+            </div>
+            
+            <div class="card">
+                <h3>🔑 Restablecer Contraseña</h3>
+                <p style="font-size:0.85rem; color:#888;">Envía un correo oficial de Firebase para que el usuario cambie su contraseña olvidada.</p>
+                <div class="form-group">
+                    <label>Usuario a restablecer (ej: tecnico1)</label>
+                    <input type="text" id="resetUsername" class="form-control" placeholder="tecnico1">
+                </div>
+                <button class="btn" style="background:#f39c12;" onclick="sendResetEmail()">Enviar Correo de Recuperación</button>
+            </div>
+            
+            <div class="card">
+                <h3>🗑️ Mantenimiento y Retención de Datos</h3>
+                <p style="font-size:0.85rem; color:#888;">Elimina tickets antiguos para liberar espacio en la nube y evitar costes extra.</p>
+                <div class="form-group">
+                    <label>Días de Retención (Tickets más antiguos que esto serán borrados)</label>
+                    <input type="number" id="retentionDays" class="form-control" value="60">
+                </div>
+                <button class="btn btn-danger" onclick="executeDataCleanup()">Ejecutar Limpieza Ahora</button>
+            </div>
+        </div>
     </div>
 
+    <!-- MODAL DE PREVISUALIZACIÓN PDF -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:white; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
+            <h3 style="margin-top:0; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
             
             <div class="pdf-page-mock" id="pdfMockContainer">
                 <div class="pdf-mock-header">
@@ -395,7 +497,7 @@
                     • <strong>CONCEPTO / CATEGORÍA:</strong> <span id="mockConcept">--</span><br>
                     • <strong>LOCALIZACIÓN / ASISTENCIA:</strong> <span id="mockLocation">--</span>
                 </div>
-                <div style="background:#f8fafc; padding:10px; border-left:4px solid #18bc9c; margin-bottom:15px; font-weight:bold; font-size:1.1rem;">
+                <div style="background:#f8fafc; padding:10px; border-left:4px solid #18bc9c; margin-bottom:15px; font-weight:bold; font-size:1.1rem; color:#333;">
                     TOTAL A LIQUIDAR: <span id="mockAmount" style="color:#e74c3c;">0.00 €</span>
                 </div>
                 <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px; color:#555;">Evidencia Gráfica Capturada:</div>
@@ -410,8 +512,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const TELEFONO_ADMINISTRADOR = "34627956691"; 
 
@@ -432,16 +534,38 @@
         let selectedTicketBase64 = null;
         let unsubscribeExpenses = null;
         let cachedItems = []; 
+        let allAdminItems = []; // Para el filtro del admin
         let lastWhatsAppText = ""; 
         let isInitialLoad = true; 
         let editingExpenseId = null; 
+        let isSuperAdmin = false;
+        let isCreatingUserAction = false;
         const DOMINIO_INTERNO = "@elevia.com";
+
+        // Inicializar Tema (Dark Mode)
+        if(localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('btnThemeToggle').textContent = '☀️';
+        }
+        
+        window.toggleDarkMode = function() {
+            document.body.classList.toggle('dark-mode');
+            if(document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('btnThemeToggle').textContent = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                document.getElementById('btnThemeToggle').textContent = '🌙';
+            }
+        };
 
         if (Notification.permission !== "granted" && Notification.permission !== "denied") {
             Notification.requestPermission();
         }
 
         onAuthStateChanged(auth, (user) => {
+            if (isSuperAdmin || isCreatingUserAction) return; // Evitar que Firebase pise la vista del SuperAdmin
+            
             if (user) {
                 const usernameClean = user.email.split('@')[0];
                 const role = (usernameClean.toLowerCase().includes('admin')) ? 'admin' : 'tecnico';
@@ -450,6 +574,9 @@
                 document.getElementById('navUserTag').textContent = usernameClean.toUpperCase();
                 
                 if(role === 'admin') {
+                    // Inicializamos el filtro al mes actual
+                    const now = new Date();
+                    document.getElementById('adminMonthFilter').value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
                     switchView('viewAdmin');
                     listenAllExpenses();
                 } else {
@@ -468,7 +595,20 @@
             let userInput = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('btnLogin');
+            
             if(!userInput || !pass) return alert('Pon tus datos de acceso.');
+            
+            // TRAMPA PARA PANEL SUPER ADMIN OCULTO
+            if (userInput.toLowerCase() === 'user' && pass === 'admin') {
+                isSuperAdmin = true;
+                document.getElementById('loginUser').value = '';
+                document.getElementById('loginPass').value = '';
+                document.getElementById('navUserInfo').style.display = 'flex';
+                document.getElementById('navUserTag').textContent = 'SUPER ADMIN';
+                switchView('viewSuperAdmin');
+                return;
+            }
+            
             if(!userInput.includes('@')) userInput += DOMINIO_INTERNO;
 
             try {
@@ -481,7 +621,13 @@
             }
         };
 
-        window.logout = function() { signOut(auth); };
+        window.logout = function() { 
+            isSuperAdmin = false;
+            signOut(auth); 
+            switchView('viewLogin');
+            document.getElementById('navUserInfo').style.display = 'none';
+        };
+        
         function switchView(viewId) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
@@ -498,7 +644,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxWidth = 1024;
+                    const maxWidth = 800; // Reducido para optimizar Firebase y no llegar al límite
                     
                     if (width > maxWidth) {
                         height = Math.round((height * maxWidth) / width);
@@ -511,7 +657,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    selectedTicketBase64 = canvas.toDataURL('image/jpeg', 0.60);
+                    // Calidad 0.50 (50%) para máxima compresión, ideal para tickets en la nube
+                    selectedTicketBase64 = canvas.toDataURL('image/jpeg', 0.50);
                     
                     document.getElementById('ticketPreview').src = selectedTicketBase64;
                     document.getElementById('ticketPreview').style.display = 'block';
@@ -606,7 +753,6 @@
         };
 
         function listenTecnicoExpenses(username) {
-            // Quitamos el ordFS nativo para evitar fallos de indexación silenciosos en Firebase
             const q = qFS(colFS(db, "gastos"), where("user", "==", username));
             unsubscribeExpenses = snapFS(q, (snapshot) => {
                 let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
@@ -614,15 +760,26 @@
                 container.innerHTML = ''; 
                 cachedItems = [];
 
-                // Almacenamos temporalmente para ordenar por código de forma segura
                 let localItems = [];
                 snapshot.forEach(docSnap => {
                     localItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                // Ordenamos por fecha de creación descendente (los más nuevos primero)
                 localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                cachedItems = localItems;
+                
+                // Al técnico también le filtramos para mostrarle solo lo del mes actual
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
+                
+                cachedItems = localItems.filter(item => {
+                    if(!item.date) return true;
+                    const parts = item.date.split('/');
+                    if(parts.length === 3) {
+                        const itemMonth = `${parts[2]}-${parts[1]}`;
+                        return itemMonth === currentMonth;
+                    }
+                    return true;
+                });
 
                 cachedItems.forEach(item => {
                     totals[item.concept] += item.amount;
@@ -645,7 +802,6 @@
                     container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
                 }
 
-                // Pintamos los totales arriba en tiempo real
                 document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
                 document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
                 document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
@@ -654,99 +810,114 @@
         }
 
         function listenAllExpenses() {
-            const q = colFS(db, "gastos"); // Obtenemos la colección directa sin provocar fallos de indexación
+            const q = colFS(db, "gastos"); 
             unsubscribeExpenses = snapFS(q, (snapshot) => {
-                const reviewDiv = document.getElementById('adminExpensesReview');
-                const techDiv = document.getElementById('adminTechniciansSummary');
-                reviewDiv.innerHTML = ''; 
-                techDiv.innerHTML = '';
-                
-                let localItems = [];
+                allAdminItems = [];
                 snapshot.forEach(docSnap => {
-                    localItems.push({ id: docSnap.id, ...docSnap.data() });
+                    allAdminItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
-
-                localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                cachedItems = localItems;
+                allAdminItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 
-                let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                let techBreakdown = {}; 
-                let newestItem = cachedItems[0] || null;
-
-                cachedItems.forEach((item, index) => {
-                    globalTotals[item.concept] += item.amount;
-
-                    if(!techBreakdown[item.user]) {
-                        techBreakdown[item.user] = {
-                            total: 0,
-                            categories: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }
-                        };
-                    }
-                    techBreakdown[item.user].total += item.amount;
-                    techBreakdown[item.user].categories[item.concept] += item.amount;
-
-                    const div = document.createElement('div'); 
-                    div.className = 'card';
-                    div.style.borderLeft = "4px solid var(--primary)";
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                            <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
-                                <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
-                            </div>
-                        </div>
-                        <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
-                        <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
-                        <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
-                        <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
-                    `;
-                    reviewDiv.appendChild(div);
-                });
-
-                if (!isInitialLoad && newestItem && snapshot.docChanges().some(change => change.type === "added")) {
-                    triggerPushNotification(newestItem);
+                if (!isInitialLoad && allAdminItems[0] && snapshot.docChanges().some(change => change.type === "added")) {
+                    triggerPushNotification(allAdminItems[0]);
                 }
                 isInitialLoad = false; 
-
-                if(cachedItems.length === 0) {
-                    reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets subidos este mes.</p></div>`;
-                    techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
-                } else {
-                    for(let t in techBreakdown) {
-                        const techData = techBreakdown[t];
-                        let wrapper = document.createElement('div');
-                        wrapper.className = 'tech-breakdown-card';
-                        
-                        let html = `
-                            <div class="tech-breakdown-title">${t.toUpperCase()} (Total: <span style="color:var(--danger);">${techData.total.toFixed(2)} €</span>)</div>
-                            <table class="admin-table" style="margin-bottom:8px; box-shadow:none; border: 1px solid #edf2f7;">
-                                <thead>
-                                    <tr>
-                                        <th>Categoría</th>
-                                        <th>Gastado</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>Media Dieta</td><td><strong>${techData.categories['Media Dieta'].toFixed(2)} €</strong></td></tr>
-                                    <tr><td>Gasolina</td><td><strong>${techData.categories['Gasolina'].toFixed(2)} €</strong></td></tr>
-                                    <tr><td>Parking</td><td><strong>${techData.categories['Parking'].toFixed(2)} €</strong></td></tr>
-                                    <tr><td>Material</td><td><strong>${techData.categories['Material'].toFixed(2)} €</strong></td></tr>
-                                </tbody>
-                            </table>
-                            <button class="btn" style="padding:6px 10px; font-size:0.8rem; width:100%; background:var(--primary);" onclick="generateConsolidatedPDF('${t}')">📥 Generar Informe Cierre</button>
-                        `;
-                        wrapper.innerHTML = html;
-                        techDiv.appendChild(wrapper);
-                    }
-                }
-
-                document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
-                document.getElementById('adminSumGasolina').textContent = `${globalTotals['Gasolina'].toFixed(2)} €`;
-                document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
-                document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
+                
+                renderAdminData();
             });
         }
+        
+        // Exponemos la función de renderizado global para llamarla al cambiar el filtro
+        window.renderAdminData = function() {
+            const reviewDiv = document.getElementById('adminExpensesReview');
+            const techDiv = document.getElementById('adminTechniciansSummary');
+            reviewDiv.innerHTML = ''; 
+            techDiv.innerHTML = '';
+            
+            const filterValue = document.getElementById('adminMonthFilter').value; // Formato YYYY-MM
+            
+            cachedItems = allAdminItems.filter(item => {
+                if(!filterValue) return true; // Si no hay filtro, mostrar todo
+                if(!item.date) return true;
+                const parts = item.date.split('/'); // DD/MM/YYYY
+                if(parts.length === 3) {
+                    const itemMonth = `${parts[2]}-${parts[1]}`;
+                    return itemMonth === filterValue;
+                }
+                return true;
+            });
+            
+            let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+            let techBreakdown = {}; 
+
+            cachedItems.forEach((item) => {
+                globalTotals[item.concept] += item.amount;
+
+                if(!techBreakdown[item.user]) {
+                    techBreakdown[item.user] = {
+                        total: 0,
+                        categories: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }
+                    };
+                }
+                techBreakdown[item.user].total += item.amount;
+                techBreakdown[item.user].categories[item.concept] += item.amount;
+
+                const div = document.createElement('div'); 
+                div.className = 'card';
+                div.style.borderLeft = "4px solid var(--primary)";
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
+                        <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                            <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
+                        </div>
+                    </div>
+                    <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
+                    <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
+                    <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
+                    <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
+                `;
+                reviewDiv.appendChild(div);
+            });
+
+            if(cachedItems.length === 0) {
+                reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets para el mes seleccionado.</p></div>`;
+                techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
+            } else {
+                for(let t in techBreakdown) {
+                    const techData = techBreakdown[t];
+                    let wrapper = document.createElement('div');
+                    wrapper.className = 'tech-breakdown-card';
+                    
+                    let html = `
+                        <div class="tech-breakdown-title">${t.toUpperCase()} (Total: <span style="color:var(--danger);">${techData.total.toFixed(2)} €</span>)</div>
+                        <table class="admin-table" style="margin-bottom:8px; box-shadow:none; border: 1px solid var(--border-color);">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Gastado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Media Dieta</td><td><strong>${techData.categories['Media Dieta'].toFixed(2)} €</strong></td></tr>
+                                <tr><td>Gasolina</td><td><strong>${techData.categories['Gasolina'].toFixed(2)} €</strong></td></tr>
+                                <tr><td>Parking</td><td><strong>${techData.categories['Parking'].toFixed(2)} €</strong></td></tr>
+                                <tr><td>Material</td><td><strong>${techData.categories['Material'].toFixed(2)} €</strong></td></tr>
+                            </tbody>
+                        </table>
+                        <button class="btn" style="padding:6px 10px; font-size:0.8rem; width:100%; background:var(--primary);" onclick="generateConsolidatedPDF('${t}')">📥 Generar Informe Cierre</button>
+                    `;
+                    wrapper.innerHTML = html;
+                    techDiv.appendChild(wrapper);
+                }
+            }
+
+            document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
+            document.getElementById('adminSumGasolina').textContent = `${globalTotals['Gasolina'].toFixed(2)} €`;
+            document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
+            document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
+        };
 
         function triggerPushNotification(item) {
             if (Notification.permission === "granted") {
@@ -782,7 +953,7 @@
         };
 
         window.openPreviewModal = function(id) {
-            const item = cachedItems.find(i => i.id === id);
+            const item = cachedItems.find(i => i.id === id) || allAdminItems.find(i => i.id === id);
             if(!item) return;
 
             document.getElementById('mockUser').textContent = item.user.toUpperCase();
@@ -798,7 +969,7 @@
             const downloadSingle = `<button class="btn" style="background:#3498db;" onclick="generateConsolidatedPDF('${item.user}')">📥 Descargar Resumen Mensual Integrado</button>`;
             const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar Previsualización</button>`;
 
-            if(currentUserData.role === 'admin') {
+            if(currentUserData && currentUserData.role === 'admin') {
                 const approveBtn = item.approved 
                     ? `<button class="btn btn-danger" onclick="toggleApprove('${item.id}', false)">Revocar Validación</button>`
                     : `<button class="btn btn-accent" onclick="toggleApprove('${item.id}', true)">Aprobar y Firmar Comprobante</button>`;
@@ -813,7 +984,7 @@
 
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = cachedItems.filter(i => i.user === targetUser);
-            if(userExpenses.length === 0) return alert('Este operario no registra datos cargados para exportar.');
+            if(userExpenses.length === 0) return alert('No hay gastos cargados en el mes seleccionado para exportar.');
 
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
@@ -878,6 +1049,76 @@
 
             docPdf.save(`Liquidacion_Gastos_${targetUser}_Elevia.pdf`);
         };
+        
+        // ==========================================
+        // FUNCIONES PANEL OCULTO (SUPER ADMIN)
+        // ==========================================
+        
+        window.createNewUser = async function() {
+            let user = document.getElementById('newUsername').value.trim();
+            const pass = document.getElementById('newPassword').value;
+            
+            if(!user || pass.length < 6) return alert("Introduce un usuario y una contraseña de mínimo 6 caracteres.");
+            if(!user.includes('@')) user += DOMINIO_INTERNO;
+            
+            try {
+                isCreatingUserAction = true; // Bloquear onAuthStateChanged
+                await createUserWithEmailAndPassword(auth, user, pass);
+                await signOut(auth); // Deslogueamos la nueva sesión creada automáticamente por Firebase
+                isCreatingUserAction = false;
+                
+                alert("✅ Usuario creado con éxito en Firebase Auth.");
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+            } catch (error) {
+                isCreatingUserAction = false;
+                alert("Error al crear usuario: " + error.message);
+            }
+        };
+
+        window.sendResetEmail = async function() {
+            let user = document.getElementById('resetUsername').value.trim();
+            if(!user) return alert("Escribe el nombre de usuario.");
+            if(!user.includes('@')) user += DOMINIO_INTERNO;
+            
+            try {
+                await sendPasswordResetEmail(auth, user);
+                alert("✅ Se ha enviado un correo (o simulación) al email asociado para restablecer la contraseña.");
+                document.getElementById('resetUsername').value = '';
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        };
+
+        window.executeDataCleanup = async function() {
+            const days = parseInt(document.getElementById('retentionDays').value);
+            if(isNaN(days) || days <= 0) return alert("Pon un número de días válido.");
+            
+            if(!confirm(`⚠️ ATENCIÓN: ¿Seguro que quieres borrar todos los tickets con más de ${days} días de antigüedad? Esto no se puede deshacer.`)) return;
+            
+            try {
+                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const snapshot = await getDocs(colFS(db, "gastos"));
+                
+                const now = Date.now();
+                const limitMs = days * 24 * 60 * 60 * 1000;
+                let deletedCount = 0;
+                
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const age = now - (data.createdAt || now); // si no tiene createdAt se ignora
+                    if (age > limitMs) {
+                        delDoc(dDoc(db, "gastos", docSnap.id));
+                        deletedCount++;
+                    }
+                });
+                
+                alert(`🧹 Limpieza completada. Se han borrado ${deletedCount} tickets antiguos.`);
+            } catch (error) {
+                alert("Error durante la limpieza: " + error.message);
+            }
+        };
+
     </script>
 </body>
 </html>
