@@ -33,7 +33,7 @@
             --border-color: #333;
             --input-bg: #2c2c2c;
             --input-border: #555;
-            --primary: #4ab3cf; /* Un azul más claro para contrastar */
+            --primary: #4ab3cf;
         }
 
         body {
@@ -267,12 +267,12 @@
             box-sizing: border-box;
         }
         .pdf-page-mock {
-            background: white; /* Siempre blanco para simular papel */
+            background: white; 
             border: 1px solid #bbb;
             padding: 25px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            color: #222; /* Siempre oscuro en la previsualización del PDF */
+            color: #222; 
             margin-bottom: 15px;
         }
         .pdf-mock-header {
@@ -291,23 +291,6 @@
         
         .logo-login-container { text-align: center; margin-bottom: 20px; }
         .logo-login-container img { max-width: 180px; height: auto; }
-        
-        .tech-breakdown-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .tech-breakdown-title {
-            font-weight: bold;
-            color: var(--primary);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 4px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
         
         .filter-bar {
             display: flex; 
@@ -415,10 +398,10 @@
             </div>
         </div>
 
-        <!-- VISTA DEL ADMINISTRADOR -->
+        <!-- VISTA DE CARMEN (ADMIN) -->
         <div id="viewAdmin" class="view">
             <div class="filter-bar">
-                <h3 style="margin:0;">Resumen Global</h3>
+                <h3 style="margin:0;">Panel de Gestión - Carmen</h3>
                 <div style="display:flex; align-items:center; gap:10px;">
                     <label style="margin:0; font-size:0.85rem;">Filtro Mes:</label>
                     <input type="month" id="adminMonthFilter" class="form-control" style="width:150px; padding:5px;" onchange="renderAdminData()">
@@ -432,12 +415,7 @@
                 <div class="stat-box material"><div class="stat-label">Total Material</div><div class="stat-val" id="adminSumMaterial">0.00 €</div></div>
             </div>
 
-            <div class="card" style="padding:12px;">
-                <h3 style="margin-top:0; font-size:1.1rem; margin-bottom:10px;">Desglose por Categorías de cada Técnico</h3>
-                <div id="adminTechniciansSummary"></div>
-            </div>
-
-            <h3>Historial General de Tickets</h3>
+            <h3>Listado de Gastos Recibidos para Exportar</h3>
             <div id="adminExpensesReview"></div>
         </div>
         
@@ -484,11 +462,11 @@
     <!-- MODAL DE PREVISUALIZACIÓN PDF -->
     <div id="previewModal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Documento de Liquidación</h3>
+            <h3 style="margin-top:0; font-size: 1.1rem; margin-bottom: 10px;">Previsualización de Comprobante Individual</h3>
             
             <div class="pdf-page-mock" id="pdfMockContainer">
                 <div class="pdf-mock-header">
-                    <div style="font-weight:bold; font-size:1.3rem; color:#2c3e50; text-transform:uppercase;">INFORME INDIVIDUAL GASTOS</div>
+                    <div style="font-weight:bold; font-size:1.3rem; color:#2c3e50; text-transform:uppercase;">COMPROBANTE DE GASTO</div>
                     <div style="font-size:0.8rem; color:#666;">Control Técnico Elevia</div>
                 </div>
                 <div style="margin-bottom:15px; font-size:0.9rem; line-height:1.5;">
@@ -498,7 +476,7 @@
                     • <strong>LOCALIZACIÓN / ASISTENCIA:</strong> <span id="mockLocation">--</span>
                 </div>
                 <div style="background:#f8fafc; padding:10px; border-left:4px solid #18bc9c; margin-bottom:15px; font-weight:bold; font-size:1.1rem; color:#333;">
-                    TOTAL A LIQUIDAR: <span id="mockAmount" style="color:#e74c3c;">0.00 €</span>
+                    IMPORTE: <span id="mockAmount" style="color:#e74c3c;">0.00 €</span>
                 </div>
                 <div style="font-weight:bold; font-size:0.85rem; margin-bottom:5px; color:#555;">Evidencia Gráfica Capturada:</div>
                 <div style="text-align:center; border:1px solid #ddd; padding:5px; background:#fafafa; border-radius:4px;">
@@ -534,7 +512,7 @@
         let selectedTicketBase64 = null;
         let unsubscribeExpenses = null;
         let cachedItems = []; 
-        let allAdminItems = []; // Para el filtro del admin
+        let allAdminItems = []; 
         let lastWhatsAppText = ""; 
         let isInitialLoad = true; 
         let editingExpenseId = null; 
@@ -564,23 +542,26 @@
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (isSuperAdmin || isCreatingUserAction) return; // Evitar que Firebase pise la vista del SuperAdmin
+            if (isSuperAdmin || isCreatingUserAction) return; 
             
             if (user) {
                 const usernameClean = user.email.split('@')[0];
-                const role = (usernameClean.toLowerCase().includes('admin')) ? 'admin' : 'tecnico';
+                // Determinamos si es Carmen (admin) o un técnico normal
+                const isCarmen = (usernameClean.toLowerCase() === 'carmen');
+                const role = isCarmen ? 'admin' : 'tecnico';
                 currentUserData = { uid: user.uid, username: usernameClean, role: role };
                 document.getElementById('navUserInfo').style.display = 'flex';
                 document.getElementById('navUserTag').textContent = usernameClean.toUpperCase();
                 
                 if(role === 'admin') {
-                    // Inicializamos el filtro al mes actual
                     const now = new Date();
                     document.getElementById('adminMonthFilter').value = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
                     switchView('viewAdmin');
                     listenAllExpenses();
                 } else {
                     switchView('viewTecnico');
+                    const today = new Date();
+                    document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     listenTecnicoExpenses(usernameClean);
                 }
             } else {
@@ -598,7 +579,6 @@
             
             if(!userInput || !pass) return alert('Pon tus datos de acceso.');
             
-            // TRAMPA PARA PANEL SUPER ADMIN OCULTO (Contraseña actualizada a admin1)
             if (userInput.toLowerCase() === 'user' && pass === 'admin1') {
                 isSuperAdmin = true;
                 document.getElementById('loginUser').value = '';
@@ -644,7 +624,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxWidth = 800; // Reducido para optimizar Firebase y no llegar al límite
+                    const maxWidth = 800;
                     
                     if (width > maxWidth) {
                         height = Math.round((height * maxWidth) / width);
@@ -657,7 +637,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Calidad 0.50 (50%) para máxima compresión, ideal para tickets en la nube
                     selectedTicketBase64 = canvas.toDataURL('image/jpeg', 0.50);
                     
                     document.getElementById('ticketPreview').src = selectedTicketBase64;
@@ -679,7 +658,7 @@
             const amount = parseFloat(document.getElementById('expenseAmount').value);
             const date = document.getElementById('expenseDate').value.trim();
             const location = document.getElementById('expenseLocation').value.trim();
-            if(!amount || !date || !location || !selectedTicketBase64) return alert('Por favor, rellena todos los datos e incluye foto.');
+            if(isNaN(amount) || !date || !location || !selectedTicketBase64) return alert('Por favor, rellena todos los datos e incluye foto.');
 
             try {
                 if (editingExpenseId) {
@@ -694,7 +673,7 @@
                         user: currentUserData.username, concept, amount, date, location, image: selectedTicketBase64, approved: false, createdAt: Date.now()
                     });
                     
-                    lastWhatsAppText = `Hola Admin, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
+                    lastWhatsAppText = `Hola Carmen, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en el panel de Elevia.`;
                     document.getElementById('btnWhatsAppNotify').style.display = 'flex';
 
                     document.getElementById('expenseAmount').value = '';
@@ -702,6 +681,9 @@
                     document.getElementById('ticketPreview').style.display = 'none';
                     document.getElementById('cameraPrompt').style.display = 'block';
                     selectedTicketBase64 = null;
+                    
+                    const today = new Date();
+                    document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     
                     alert('Gasto guardado en la nube de Elevia. Pulsa el botón verde inferior si quieres enviarlo también por WhatsApp.');
                 }
@@ -736,7 +718,8 @@
             document.getElementById('formTitle').textContent = "Nuevo Ticket / Gasto";
             document.getElementById('expenseAmount').value = '';
             document.getElementById('expenseLocation').value = '';
-            document.getElementById('expenseDate').value = '';
+            const today = new Date();
+            document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
             document.getElementById('ticketPreview').style.display = 'none';
             document.getElementById('cameraPrompt').style.display = 'block';
             selectedTicketBase64 = null;
@@ -767,7 +750,6 @@
 
                 localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 
-                // Al técnico también le filtramos para mostrarle solo lo del mes actual
                 const now = new Date();
                 const currentMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
                 
@@ -827,19 +809,16 @@
             });
         }
         
-        // Exponemos la función de renderizado global para llamarla al cambiar el filtro
         window.renderAdminData = function() {
             const reviewDiv = document.getElementById('adminExpensesReview');
-            const techDiv = document.getElementById('adminTechniciansSummary');
             reviewDiv.innerHTML = ''; 
-            techDiv.innerHTML = '';
             
-            const filterValue = document.getElementById('adminMonthFilter').value; // Formato YYYY-MM
+            const filterValue = document.getElementById('adminMonthFilter').value; 
             
             cachedItems = allAdminItems.filter(item => {
-                if(!filterValue) return true; // Si no hay filtro, mostrar todo
+                if(!filterValue) return true; 
                 if(!item.date) return true;
-                const parts = item.date.split('/'); // DD/MM/YYYY
+                const parts = item.date.split('/'); 
                 if(parts.length === 3) {
                     const itemMonth = `${parts[2]}-${parts[1]}`;
                     return itemMonth === filterValue;
@@ -848,19 +827,9 @@
             });
             
             let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-            let techBreakdown = {}; 
 
             cachedItems.forEach((item) => {
                 globalTotals[item.concept] += item.amount;
-
-                if(!techBreakdown[item.user]) {
-                    techBreakdown[item.user] = {
-                        total: 0,
-                        categories: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }
-                    };
-                }
-                techBreakdown[item.user].total += item.amount;
-                techBreakdown[item.user].categories[item.concept] += item.amount;
 
                 const div = document.createElement('div'); 
                 div.className = 'card';
@@ -869,48 +838,20 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
                         <span>Operario: <strong style="color:var(--primary);">${item.user.toUpperCase()}</strong></span>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Aprobado' : 'Pendiente'}</span>
+                            <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Validado' : 'Pendiente'}</span>
                             <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);">🗑️</button>
                         </div>
                     </div>
                     <p style="margin:4px 0;"><strong>Concepto:</strong> ${item.concept} — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span></p>
                     <p style="margin:4px 0; font-size:0.9rem; color:#555;">📍 <strong>Destino:</strong> ${item.location}</p>
                     <p style="margin:4px 0; font-size:0.85rem; color:#888;">📅 <strong>Fecha ticket:</strong> ${item.date}</p>
-                    <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">Revisar Hoja e Imprimir</button>
+                    <button class="btn btn-accent" style="padding:6px; font-size:0.85rem; margin-top:8px; width:100%;" onclick="openPreviewModal('${item.id}')">🔍 Ver y Generar PDF de este Gasto</button>
                 `;
                 reviewDiv.appendChild(div);
             });
 
             if(cachedItems.length === 0) {
                 reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets para el mes seleccionado.</p></div>`;
-                techDiv.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem; margin:5px 0;">No hay desgloses de empleados todavía.</p>`;
-            } else {
-                for(let t in techBreakdown) {
-                    const techData = techBreakdown[t];
-                    let wrapper = document.createElement('div');
-                    wrapper.className = 'tech-breakdown-card';
-                    
-                    let html = `
-                        <div class="tech-breakdown-title">${t.toUpperCase()} (Total: <span style="color:var(--danger);">${techData.total.toFixed(2)} €</span>)</div>
-                        <table class="admin-table" style="margin-bottom:8px; box-shadow:none; border: 1px solid var(--border-color);">
-                            <thead>
-                                <tr>
-                                    <th>Categoría</th>
-                                    <th>Gastado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Media Dieta</td><td><strong>${techData.categories['Media Dieta'].toFixed(2)} €</strong></td></tr>
-                                <tr><td>Gasolina</td><td><strong>${techData.categories['Gasolina'].toFixed(2)} €</strong></td></tr>
-                                <tr><td>Parking</td><td><strong>${techData.categories['Parking'].toFixed(2)} €</strong></td></tr>
-                                <tr><td>Material</td><td><strong>${techData.categories['Material'].toFixed(2)} €</strong></td></tr>
-                            </tbody>
-                        </table>
-                        <button class="btn" style="padding:6px 10px; font-size:0.8rem; width:100%; background:var(--primary);" onclick="generateConsolidatedPDF('${t}')">📥 Generar Informe Cierre</button>
-                    `;
-                    wrapper.innerHTML = html;
-                    techDiv.appendChild(wrapper);
-                }
             }
 
             document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
@@ -966,22 +907,71 @@
             const btns = document.getElementById('modalActionButtons');
             btns.innerHTML = '';
 
-            const downloadSingle = `<button class="btn" style="background:#3498db;" onclick="generateConsolidatedPDF('${item.user}')">📥 Descargar Resumen Mensual Integrado</button>`;
+            const downloadSinglePDF = `<button class="btn btn-accent" onclick="generateSingleExpensePDF('${item.id}')">📥 Descargar PDF Individual de este Gasto</button>`;
             const closeBtn = `<button class="btn" style="background:#7f8c8d;" onclick="closeModal()">Cerrar Previsualización</button>`;
 
             if(currentUserData && currentUserData.role === 'admin') {
                 const approveBtn = item.approved 
                     ? `<button class="btn btn-danger" onclick="toggleApprove('${item.id}', false)">Revocar Validación</button>`
-                    : `<button class="btn btn-accent" onclick="toggleApprove('${item.id}', true)">Aprobar y Firmar Comprobante</button>`;
-                btns.innerHTML = approveBtn + downloadSingle + closeBtn;
+                    : `<button class="btn" style="background:var(--success);" onclick="toggleApprove('${item.id}', true)">Marcar como Validado</button>`;
+                btns.innerHTML = approveBtn + downloadSinglePDF + closeBtn;
             } else {
-                btns.innerHTML = downloadSingle + closeBtn;
+                btns.innerHTML = downloadSinglePDF + closeBtn;
             }
             document.getElementById('previewModal').style.display = 'flex';
         };
 
         window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
 
+        // Función para generar un PDF exclusivo e independiente por cada gasto individual con su foto
+        window.generateSingleExpensePDF = function(itemId) {
+            const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
+            if(!item) return alert('No se ha encontrado el gasto seleccionado.');
+
+            const { jsPDF } = window.jspdf;
+            const docPdf = new jsPDF();
+            
+            // Cabecera del PDF del gasto
+            docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(16); docPdf.setTextColor(44, 62, 80);
+            docPdf.text("COMPROBANTE DE GASTO - ELEVIA", 15, 20);
+            docPdf.setFontSize(10); docPdf.setFont("Helvetica", "normal"); docPdf.setTextColor(100, 116, 139);
+            docPdf.text(`Empresa: ELEVIA ELEVADORES S.L.  |  Operario: ${item.user.toUpperCase()}`, 15, 26);
+            docPdf.line(15, 29, 195, 29);
+
+            // Detalles del gasto
+            let currentY = 40;
+            docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(12); docPdf.setTextColor(44, 62, 80);
+            docPdf.text(`DETALLES DE LA ASISTENCIA`, 15, currentY);
+            currentY += 8;
+
+            docPdf.setFont("Helvetica", "normal"); docPdf.setFontSize(11); docPdf.setTextColor(50, 50, 50);
+            docPdf.text(`• Concepto / Categoría: ${item.concept}`, 20, currentY); currentY += 7;
+            docPdf.text(`• Fecha del Comprobante: ${item.date}`, 20, currentY); currentY += 7;
+            docPdf.text(`• Destino / Localización: ${item.location}`, 20, currentY); currentY += 10;
+
+            docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(13); docPdf.setTextColor(231, 76, 60);
+            docPdf.text(`IMPORTE TOTAL: ${item.amount.toFixed(2)} €`, 20, currentY); 
+            currentY += 15;
+
+            // Anexo de la imagen del ticket
+            docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(11); docPdf.setTextColor(44, 62, 80);
+            docPdf.text(`EVIDENCIA FOTOGRÁFICA DEL TICKET`, 15, currentY);
+            currentY += 5;
+
+            try {
+                let fmt = 'JPEG';
+                if (item.image.includes('png')) fmt = 'PNG';
+                if (item.image.includes('webp')) fmt = 'WEBP';
+                docPdf.addImage(item.image, fmt, 15, currentY, 130, 130, undefined, 'FAST');
+            } catch (e) {
+                docPdf.text("[Evidencia Gráfica no Renderizable]", 15, currentY + 10);
+            }
+
+            const cleanDate = item.date.replace(/\//g, '-');
+            docPdf.save(`Gasto_${item.concept}_${item.user}_${cleanDate}.pdf`);
+        };
+
+        // Mantenemos la función de consolidado por si acaso algún técnico la invoca desde su panel
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = cachedItems.filter(i => i.user === targetUser);
             if(userExpenses.length === 0) return alert('No hay gastos cargados en el mes seleccionado para exportar.');
@@ -1050,10 +1040,6 @@
             docPdf.save(`Liquidacion_Gastos_${targetUser}_Elevia.pdf`);
         };
         
-        // ==========================================
-        // FUNCIONES PANEL OCULTO (SUPER ADMIN)
-        // ==========================================
-        
         window.createNewUser = async function() {
             let user = document.getElementById('newUsername').value.trim();
             const pass = document.getElementById('newPassword').value;
@@ -1062,9 +1048,9 @@
             if(!user.includes('@')) user += DOMINIO_INTERNO;
             
             try {
-                isCreatingUserAction = true; // Bloquear onAuthStateChanged
+                isCreatingUserAction = true; 
                 await createUserWithEmailAndPassword(auth, user, pass);
-                await signOut(auth); // Deslogueamos la nueva sesión creada automáticamente por Firebase
+                await signOut(auth); 
                 isCreatingUserAction = false;
                 
                 alert("✅ Usuario creado con éxito en Firebase Auth.");
@@ -1091,34 +1077,32 @@
         };
 
         window.executeDataCleanup = async function() {
-            const days = parseInt(document.getElementById('retentionDays').value);
-            if(isNaN(days) || days <= 0) return alert("Pon un número de días válido.");
+            const days = document.getElementById('retentionDays').value;
+            if(!days || isNaN(days)) return alert("Introduce un número de días válido.");
             
-            if(!confirm(`⚠️ ATENCIÓN: ¿Seguro que quieres borrar todos los tickets con más de ${days} días de antigüedad? Esto no se puede deshacer.`)) return;
-            
+            if(!confirm(`⚠️ ¿Seguro que deseas eliminar todos los tickets con más de ${days} días de antigüedad?`)) return;
+
             try {
-                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const snapshot = await getDocs(colFS(db, "gastos"));
-                
                 const now = Date.now();
-                const limitMs = days * 24 * 60 * 60 * 1000;
-                let deletedCount = 0;
+                const limitMs = parseInt(days) * 24 * 60 * 60 * 1000;
+                const snapshot = await getDocs(colFS(db, "gastos"));
+                let count = 0;
+
+                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 
-                snapshot.forEach((docSnap) => {
+                for(const docSnap of snapshot.docs) {
                     const data = docSnap.data();
-                    const age = now - (data.createdAt || now); // si no tiene createdAt se ignora
-                    if (age > limitMs) {
-                        delDoc(dDoc(db, "gastos", docSnap.id));
-                        deletedCount++;
+                    const createdAt = data.createdAt || now;
+                    if((now - createdAt) > limitMs) {
+                        await delDoc(dDoc(db, "gastos", docSnap.id));
+                        count++;
                     }
-                });
-                
-                alert(`🧹 Limpieza completada. Se han borrado ${deletedCount} tickets antiguos.`);
-            } catch (error) {
-                alert("Error durante la limpieza: " + error.message);
+                }
+                alert(`🧹 Limpieza completada con éxito. Se han borrado ${count} tickets antiguos.`);
+            } catch(e) {
+                alert("Error en la limpieza: " + e.message);
             }
         };
-
     </script>
 </body>
 </html>
