@@ -428,7 +428,15 @@
             </div>
 
             <div class="card">
-                <h3 style="margin-top:0; font-size:1rem;">📊 Resumen Gráfico por Secciones</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="margin:0; font-size:1rem;">📊 Resumen Gráfico</h3>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <label style="margin:0; font-size:0.8rem;">Ver:</label>
+                        <select id="chartViewSelector" class="form-control" style="width: 140px; padding: 4px; font-size: 0.85rem;" onchange="renderAdminData()">
+                            <option value="global">Global (Todos)</option>
+                        </select>
+                    </div>
+                </div>
                 <div style="position: relative; height: 220px; width: 100%;">
                     <canvas id="carmenExpensesChart"></canvas>
                 </div>
@@ -852,7 +860,22 @@
             document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
             document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
 
-            updateCarmenChart(globalTotals);
+            // Actualizar opciones del selector de gráficos manteniendo la selección actual
+            const chartSelector = document.getElementById('chartViewSelector');
+            const currentSelectedChart = chartSelector.value;
+            let chartOptionsHtml = '<option value="global">Global (Todos)</option>';
+            Object.keys(techMap).forEach(tech => {
+                chartOptionsHtml += `<option value="${tech}">${tech.toUpperCase()}</option>`;
+            });
+            chartSelector.innerHTML = chartOptionsHtml;
+            // Si el técnico seleccionado sigue existiendo, lo mantenemos; si no, volvemos a global
+            if (chartSelector.querySelector(`option[value="${currentSelectedChart}"]`)) {
+                chartSelector.value = currentSelectedChart;
+            } else {
+                chartSelector.value = 'global';
+            }
+
+            updateCarmenChart(globalTotals, techMap);
 
             const techKeys = Object.keys(techMap);
             if(techKeys.length === 0) {
@@ -919,20 +942,34 @@
             }
         };
 
-        function updateCarmenChart(totals) {
+        function updateCarmenChart(globalTotals, techMap) {
             const ctx = document.getElementById('carmenExpensesChart').getContext('2d');
             const isDark = document.body.classList.contains('dark-mode');
             const textColor = isDark ? '#e0e0e0' : '#333';
+            const selectedView = document.getElementById('chartViewSelector').value;
 
             if(carmenChartInstance) carmenChartInstance.destroy();
+
+            let chartData, chartTitle;
+            if(selectedView === 'global') {
+                chartData = [globalTotals['Media Dieta'], globalTotals['Gasolina'], globalTotals['Parking'], globalTotals['Material']];
+                chartTitle = 'Gasto Global Total (€)';
+            } else if(techMap[selectedView]) {
+                const tTotals = techMap[selectedView].totals;
+                chartData = [tTotals['Media Dieta'], tTotals['Gasolina'], tTotals['Parking'], tTotals['Material']];
+                chartTitle = `Gasto de ${selectedView.toUpperCase()} (€)`;
+            } else {
+                chartData = [0, 0, 0, 0];
+                chartTitle = 'Gasto Total (€)';
+            }
 
             carmenChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: ['Media Dieta', 'Gasolina', 'Parking', 'Material'],
                     datasets: [{
-                        label: 'Gasto Total (€)',
-                        data: [totals['Media Dieta'], totals['Gasolina'], totals['Parking'], totals['Material']],
+                        label: chartTitle,
+                        data: chartData,
                         backgroundColor: ['#f1c40f', '#3498db', '#9b59b6', '#e67e22'],
                         borderWidth: 1
                     }]
@@ -940,7 +977,15 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: chartTitle,
+                            color: textColor,
+                            font: { size: 12 }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
