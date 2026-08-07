@@ -315,6 +315,23 @@
         .technician-body.open {
             display: block;
         }
+
+        .status-banner {
+            background: rgba(243, 156, 18, 0.12);
+            border: 1px solid var(--warning);
+            color: var(--text-color);
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-banner.all-approved {
+            background: rgba(46, 204, 113, 0.12);
+            border-color: var(--success);
+        }
     </style>
 </head>
 <body>
@@ -357,6 +374,11 @@
                 <h3 style="margin:0;">Mi Desglose Mensual</h3>
                 <button class="btn btn-accent" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="generateConsolidatedPDF(currentUserData.username)">📥 Mi PDF Resumen</button>
             </div>
+            
+            <div id="tecnicoStatusBanner" class="status-banner" style="display:none;">
+                ⏳ <span id="tecnicoStatusText">Tienes tickets pendientes de validación por Secretaría.</span>
+            </div>
+
             <div class="grid-stats">
                 <div class="stat-box dieta"><div class="stat-label">Media Dieta</div><div class="stat-val" id="sumDieta">0.00 €</div></div>
                 <div class="stat-box gasolina"><div class="stat-label">Gasolina</div><div class="stat-val" id="sumGasolina">0.00 €</div></div>
@@ -783,8 +805,10 @@
                     return true;
                 });
 
+                let pendingCount = 0;
                 cachedItems.forEach(item => {
                     totals[item.concept] += item.amount;
+                    if(!item.approved) pendingCount++;
                     
                     const div = document.createElement('div'); 
                     div.className = 'part-item';
@@ -800,7 +824,18 @@
                     container.appendChild(div);
                 });
 
-                if(cachedItems.length === 0) {
+                const banner = document.getElementById('tecnicoStatusBanner');
+                if(cachedItems.length > 0) {
+                    banner.style.display = 'flex';
+                    if(pendingCount > 0) {
+                        banner.className = 'status-banner';
+                        document.getElementById('tecnicoStatusText').textContent = `Tienes ${pendingCount} ticket${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''} de validación por Secretaría.`;
+                    } else {
+                        banner.className = 'status-banner all-approved';
+                        document.getElementById('tecnicoStatusText').textContent = `¡Todos tus gastos de este mes están validados por Secretaría! 🎉`;
+                    }
+                } else {
+                    banner.style.display = 'none';
                     container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
                 }
 
@@ -848,11 +883,14 @@
                 globalTotals[item.concept] += item.amount;
                 const techName = (item.user || 'desconocido').toLowerCase();
                 if(!techMap[techName]) {
-                    techMap[techName] = { items: [], totals: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }, grandTotal: 0 };
+                    techMap[techName] = { items: [], totals: { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 }, grandTotal: 0, hasPending: false };
                 }
                 techMap[techName].items.push(item);
                 techMap[techName].totals[item.concept] += item.amount;
                 techMap[techName].grandTotal += item.amount;
+                if(!item.approved) {
+                    techMap[techName].hasPending = true;
+                }
             });
 
             document.getElementById('adminSumDieta').textContent = `${globalTotals['Media Dieta'].toFixed(2)} €`;
@@ -860,7 +898,6 @@
             document.getElementById('adminSumParking').textContent = `${globalTotals['Parking'].toFixed(2)} €`;
             document.getElementById('adminSumMaterial').textContent = `${globalTotals['Material'].toFixed(2)} €`;
 
-            // Actualizar opciones del selector de gráficos manteniendo la selección actual
             const chartSelector = document.getElementById('chartViewSelector');
             const currentSelectedChart = chartSelector.value;
             let chartOptionsHtml = '<option value="global">Global (Todos)</option>';
@@ -868,7 +905,6 @@
                 chartOptionsHtml += `<option value="${tech}">${tech.toUpperCase()}</option>`;
             });
             chartSelector.innerHTML = chartOptionsHtml;
-            // Si el técnico seleccionado sigue existiendo, lo mantenemos; si no, volvemos a global
             if (chartSelector.querySelector(`option[value="${currentSelectedChart}"]`)) {
                 chartSelector.value = currentSelectedChart;
             } else {
@@ -907,9 +943,16 @@
                     `;
                 });
 
+                const statusBadgeHtml = data.hasPending 
+                    ? `<span class="badge badge-pending">🟠 Pendientes</span>`
+                    : `<span class="badge badge-approved">🟢 Validados</span>`;
+
                 techCard.innerHTML = `
                     <div class="technician-header" onclick="toggleAccordion('${accordionId}')">
-                        <span>👷‍♂️ ${tech.toUpperCase()} (${data.items.length} tickets)</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span>👷‍♂️ ${tech.toUpperCase()} (${data.items.length})</span>
+                            ${statusBadgeHtml}
+                        </div>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <span style="color:var(--danger);">${data.grandTotal.toFixed(2)} €</span>
                             <button class="btn btn-accent" style="padding:4px 8px; font-size:0.75rem;" onclick="event.stopPropagation(); generateConsolidatedPDF('${tech}')">📥 PDF Mes</button>
