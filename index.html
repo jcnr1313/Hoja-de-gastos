@@ -1148,7 +1148,6 @@
         window.sendResetEmail = async function() {
             let user = document.getElementById('resetUsername').value.trim();
             if(!user) return alert("Escribe el nombre de usuario.");
-            if(!user.includes('@')) user += DOMINIO_INTERנו; // Ojo: corregido en tu estructura
             if(!user.includes('@')) user += DOMINIO_INTERNO;
             
             try {
