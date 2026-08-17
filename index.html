@@ -333,7 +333,7 @@
             border-color: var(--success);
         }
 
-        /* ESTILOS MEJORADOS DEL ASISTENTE DE IA FLOTANTE */
+        /* ESTILOS DEL ASISTENTE DE IA FLOTANTE */
         @keyframes aiPulse {
             0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
             70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
@@ -370,9 +370,9 @@
             position: fixed;
             bottom: 95px;
             right: 20px;
-            width: 370px;
+            width: 380px;
             max-width: calc(100vw - 40px);
-            height: 480px;
+            height: 500px;
             background: var(--card-bg);
             border-radius: 14px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -465,6 +465,7 @@
             font-size: 13.5px;
             line-height: 1.45;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            white-space: pre-line;
         }
 
         .ai-message.bot {
@@ -480,6 +481,33 @@
             color: white;
             align-self: flex-end;
             border-top-right-radius: 2px;
+        }
+
+        .ai-typing {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            align-self: flex-start;
+            align-items: center;
+        }
+
+        .ai-typing span {
+            width: 7px;
+            height: 7px;
+            background: #888;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .ai-typing span:nth-child(1) { animation-delay: -0.32s; }
+        .ai-typing span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
         .ai-modal-footer {
@@ -742,11 +770,11 @@
         </div>
         <div class="ai-modal-body" id="ai-chat-messages">
             <div class="ai-message bot">
-                ¡Hola! Soy Laura, tu analista virtual de Elevia. Puedo ayudarte a analizar los tickets, consultar importes por técnico o resolver cualquier duda sobre los gastos. ¿En qué te puedo ayudar hoy?
+                ¡Hola! Soy Laura, tu analista virtual de Elevia. Tengo acceso completo en tiempo real a los tickets, filtros de mes, estados de validación y resúmenes. ¿Qué te gustaría consultar o qué operación necesitas realizar?
             </div>
         </div>
         <div class="ai-modal-footer">
-            <input type="text" id="ai-chat-input" placeholder="Pregúntame sobre los gastos..." onkeypress="handleAIPress(event)">
+            <input type="text" id="ai-chat-input" placeholder="Pregúntame sobre la app, técnicos, totales..." onkeypress="handleAIPress(event)">
             <button onclick="sendAIQuery()">Enviar</button>
         </div>
     </div>
@@ -1492,7 +1520,7 @@
             }
         };
 
-        // LÓGICA DEL ASISTENTE IA MEJORADA Y CONTEXTUAL
+        // LÓGICA DEL ASISTENTE IA ULTRA-AVANZADA (RAG CONTEXTUAL SOBRE LA WEBAPP)
         window.toggleAIChat = function() {
             const modal = document.getElementById('ai-chat-modal');
             if (modal.style.display === 'none' || modal.style.display === '') {
@@ -1517,10 +1545,21 @@
             appendAIMessage(query, 'user');
             input.value = '';
 
+            const messagesContainer = document.getElementById('ai-chat-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'ai-typing';
+            typingDiv.id = 'ai-typing-indicator';
+            typingDiv.innerHTML = '<span></span><span></span><span></span>';
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
             setTimeout(() => {
-                const response = generateSmartAIResponse(query);
+                const indicator = document.getElementById('ai-typing-indicator');
+                if (indicator) indicator.remove();
+
+                const response = generateDeepAIResponse(query);
                 appendAIMessage(response, 'bot');
-            }, 300);
+            }, 500);
         };
 
         function appendAIMessage(text, sender) {
@@ -1532,49 +1571,75 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function generateSmartAIResponse(query) {
+        function generateDeepAIResponse(query) {
             const q = query.toLowerCase();
-            const itemsToAnalyze = (currentUserData && currentUserData.role === 'admin') ? allAdminItems : cachedItems;
+            const isAdmin = currentUserData && currentUserData.role === 'admin';
+            const currentMonthFilter = document.getElementById('adminMonthFilter') ? document.getElementById('adminMonthFilter').value : 'No activo';
+            const dataset = isAdmin ? allAdminItems : cachedItems;
 
-            // Análisis inteligente basado en datos reales cargados en memoria
-            if (q.includes('total') || q.includes('cuánto') || q.includes('gastado') || q.includes('suma')) {
+            // 1. Consultas sobre el usuario actual y sesión
+            if (q.includes('quién soy') || q.includes('mi rol') || q.includes('usuario')) {
+                if (!currentUserData) return "Actualmente no has iniciado sesión en la plataforma.";
+                return `👤 Estás autenticado como *${currentUserData.username.toUpperCase()}* con el rol de *${currentUserData.role.toUpperCase()}*.`;
+            }
+
+            // 2. Consultas sobre el mes analizado / filtros activos
+            if (q.includes('mes') || q.includes('filtrar') || q.includes('periodo')) {
+                return `📅 El filtro de mes actual en el panel de Secretaría es: *${currentMonthFilter}*. Los datos mostrados en pantalla y gráficos corresponden a este periodo.`;
+            }
+
+            // 3. Consultas sobre estado de validación o pendientes
+            if (q.includes('pendiente') || q.includes('validar') || q.includes('aprobar') || q.includes('revisar')) {
+                let pendings = dataset.filter(i => !i.approved);
+                if (pendings.length === 0) {
+                    return `✅ No hay ningún gasto pendiente de validación para el periodo actual (${currentMonthFilter}). ¡Todo está al día!`;
+                }
+                let summary = `⚠️ Hay *${pendings.length}* ticket(s) pendiente(s) de validación:\n`;
+                pendings.forEach(p => {
+                    summary += `• ${p.user.toUpperCase()} - ${p.concept}: ${p.amount.toFixed(2)} € (${p.location})\n`;
+                });
+                return summary.trim();
+            }
+
+            // 4. Búsqueda por técnico específico
+            let techniciansList = [...new Set(allAdminItems.map(i => i.user.toLowerCase()))];
+            let foundTech = techniciansList.find(t => q.includes(t));
+            if (foundTech) {
+                let techItems = allAdminItems.filter(i => i.user.toLowerCase() === foundTech);
+                let techTotal = techItems.reduce((acc, curr) => acc + curr.amount, 0);
+                let pendingCount = techItems.filter(i => !i.approved).length;
+                return `👷‍♂️ Resumen para el técnico *${foundTech.toUpperCase()}*:\n• Total acumulado: *${techTotal.toFixed(2)} €*\n• Total de tickets: ${techItems.length}\n• Tickets pendientes de validar: ${pendingCount}`;
+            }
+
+            // 5. Consultas sobre importes y totales globales o por categorías
+            if (q.includes('total') || q.includes('cuánto') || q.includes('gastado') || q.includes('suma') || q.includes('gasto')) {
                 let totalSum = 0;
                 let cats = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                itemsToAnalyze.forEach(item => {
+                dataset.forEach(item => {
                     totalSum += item.amount;
                     if(cats[item.concept] !== undefined) cats[item.concept] += item.amount;
                 });
                 
-                return `📊 Analizando los registros actuales:\n• Importe total: ${totalSum.toFixed(2)} €\n- Dietas: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €`;
-            } 
-            else if (q.includes('técnico') || q.includes('operario') || q.includes('quién')) {
-                if (currentUserData && currentUserData.role !== 'admin') {
-                    return `Actualmente estás operando como ${currentUserData.username.toUpperCase()}. Tus registros activos suman un total visible en tus tarjetas de resumen superior.`;
-                }
-                let techSummary = {};
-                allAdminItems.forEach(item => {
-                    let u = (item.user || 'desconocido').toUpperCase();
-                    if(!techSummary[u]) techSummary[u] = 0;
-                    techSummary[u] += item.amount;
-                });
-                let summaryText = "👷‍♂️ Desglose de gastos por técnico:";
-                for(let [tech, sum] of Object.entries(techSummary)) {
-                    summaryText += `\n• ${tech}: ${sum.toFixed(2)} €`;
-                }
-                return summaryText;
-            }
-            else if (q.includes('pendiente') || q.includes('validar') || q.includes('aprobar')) {
-                let pendingItems = itemsToAnalyze.filter(i => !i.approved);
-                if(pendingItems.length === 0) {
-                    return "¡Buenas noticias! No hay ningún gasto pendiente de validación en este momento.";
-                }
-                return `⚠️ Hay ${pendingItems.length} gasto(s) pendiente(s) de validación por parte de Secretaría.`;
-            }
-            else if (q.includes('ayuda') || q.includes('hola') || q.includes('que puedes hacer')) {
-                return "¡Hola! Como analista financiera de Elevia, puedo ayudarte a consultar totales por categoría, auditar gastos por técnico, revisar tickets pendientes o guiarte en la generación de informes PDF.";
+                return `📊 Desglose financiero actual (${isAdmin ? 'Vista Secretaría' : 'Vista Personal'}):\n• Importe Total: *${totalSum.toFixed(2)} €*\n- Media Dieta: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €`;
             }
 
-            return "He procesado tu consulta. Recuerda que puedes preguntarme por los totales acumulados, los gastos desglosados por técnico o el estado de validación de los tickets.";
+            // 6. Consultas sobre cómo hacer algo en la webapp (Guía interactiva)
+            if (q.includes('cómo subo') || q.includes('añadir ticket') || q.includes('nuevo gasto') || q.includes('foto')) {
+                return "📸 Para subir un nuevo ticket:\n1. Ve a tu vista de técnico.\n2. Haz clic en la zona de cámara para hacer una foto o seleccionarla de tu galería.\n3. Selecciona el concepto, introduce el importe, la fecha y el destino.\n4. Pulsa 'Guardar Gasto'. ¡Listo!";
+            }
+            if (q.includes('cómo descargo') || q.includes('pdf') || q.includes('informe')) {
+                return "📥 Para descargar un PDF:\n• Como técnico, puedes pulsar el botón 'Mi PDF Resumen' en la parte superior.\n• Como administrador (Carmen), puedes desplegar la tarjeta de cualquier técnico y pulsar 'PDF Mes' o abrir un ticket concreto para descargar su comprobante individual.";
+            }
+            if (q.includes('whatsapp') || q.includes('notificar')) {
+                return "💬 Al guardar un nuevo gasto como técnico, aparecerá un botón verde de WhatsApp para notificar directamente a Carmen con todos los detalles del ticket.";
+            }
+
+            // 7. Saludos o preguntas generales
+            if (q.includes('hola') || q.includes('ayuda') || q.includes('quién eres')) {
+                return "¡Hola! Soy Laura, tu analista financiera y asistente experta en la webapp Elevia. Puedo decirte subtotales por técnico, auditar tickets pendientes, explicarte cómo usar cualquier función de la aplicación o calcular sumas financieras en segundos. ¿Qué necesitas?";
+            }
+
+            return `🔍 He analizado tu pregunta ("${query}"). Recuerda que puedo informarte sobre los totales por categoría, los gastos de un técnico específico (ej: "gastos de [nombre]"), los tickets pendientes de validar o guiarte sobre el funcionamiento de la webapp.`;
         }
     </script>
 </body>
