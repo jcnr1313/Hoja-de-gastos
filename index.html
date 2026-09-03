@@ -1469,12 +1469,12 @@
             }
 
             const subject = encodeURIComponent(`Informe Consolidado de Gastos Elevia - ${target.toUpperCase()} (${monthVal})`);
-            const body = encodeURIComponent(`Hola equipo de administración,\n\nAdjunto a este correo el informe en PDF consolidado y verificado correspondiente a los gastos de ${target === 'todos' ? 'todos los técnicos (Global)' : 'el operario ' + target.toUpperCase()} para el periodo ${monthVal}.\n\nAtentamente,\nSecretaría - Elevia`);
+            const body = encodeURIComponent(`Hola equipo de administración,\n\nAdjunto a este correo el informe en PDF consolidado y verificado correspondiente a los gastos de ${target === 'todos' ? 'todos los técnicos (Global)' : 'el operario ' + target.toUpperCase()} para el periodo ${monthVal}.\n\n(Nota: Por favor, adjunta el archivo PDF que se acaba de descargar en tu dispositivo).\n\nAtentamente,\nSecretaría - Elevia`);
             
             setTimeout(() => {
                 window.location.href = `mailto:${EMAIL_ADMINISTRACION}?subject=${subject}&body=${body}`;
-                showToast('PDF descargado y cliente de correo abierto hacia administración');
-            }, 500);
+                showToast('PDF descargado. Adjúntalo en el correo que se acaba de abrir.');
+            }, 600);
         };
 
         window.deleteExpense = async function(id) {
