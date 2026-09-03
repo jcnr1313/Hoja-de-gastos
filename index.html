@@ -119,7 +119,6 @@
         .view { display: none; }
         .view.active { display: block; }
 
-        /* TARJETAS CON HOVER DINÁMICO */
         .card {
             background: var(--card-bg);
             border-radius: 10px;
@@ -257,7 +256,6 @@
             padding: 4px;
         }
 
-        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -365,7 +363,6 @@
             border-color: var(--success);
         }
 
-        /* TOAST NOTIFICATION FLOTANTE */
         #toast-container {
             position: fixed;
             bottom: 20px;
@@ -401,7 +398,6 @@
             to { opacity: 0; transform: translateY(10px); }
         }
 
-        /* SKELETON LOADER */
         .skeleton {
             background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
             background-size: 200% 100%;
@@ -415,7 +411,6 @@
             100% { background-position: -200% 0; }
         }
 
-        /* ASISTENTE IA FLOTANTE */
         @keyframes aiPulse {
             0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
             70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
@@ -442,7 +437,6 @@
             animation: aiPulse 2.5s infinite;
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
-
         .ai-fab:hover {
             transform: scale(1.1);
             background: linear-gradient(135deg, #2563eb, #1e40af);
@@ -464,7 +458,6 @@
             overflow: hidden;
             border: 1px solid var(--border-color);
         }
-
         .ai-modal-header {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
@@ -473,13 +466,11 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .ai-header-title {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-
         .ai-avatar-container {
             position: relative;
             width: 36px;
@@ -492,13 +483,11 @@
             align-items: center;
             justify-content: center;
         }
-
         .ai-avatar-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-
         .ai-status-dot {
             position: absolute;
             bottom: 0;
@@ -509,13 +498,11 @@
             border-radius: 50%;
             border: 2px solid #1d4ed8;
         }
-
         .ai-modal-header h3 {
             margin: 0;
             font-size: 15px;
             font-weight: 600;
         }
-
         .ai-close-btn {
             background: none;
             border: none;
@@ -536,7 +523,6 @@
             gap: 10px;
             background: var(--bg-color);
         }
-
         .ai-message {
             padding: 10px 14px;
             border-radius: 10px;
@@ -546,7 +532,6 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             white-space: pre-line;
         }
-
         .ai-message.bot {
             background: var(--card-bg);
             color: var(--text-color);
@@ -554,14 +539,12 @@
             border: 1px solid var(--border-color);
             border-top-left-radius: 2px;
         }
-
         .ai-message.user {
             background: #2563eb;
             color: white;
             align-self: flex-end;
             border-top-right-radius: 2px;
         }
-
         .ai-typing {
             display: flex;
             gap: 4px;
@@ -572,7 +555,6 @@
             align-self: flex-start;
             align-items: center;
         }
-
         .ai-typing span {
             width: 7px;
             height: 7px;
@@ -595,7 +577,6 @@
             display: flex;
             gap: 8px;
         }
-
         .ai-modal-footer input {
             flex: 1;
             padding: 9px 12px;
@@ -637,7 +618,6 @@
 </head>
 <body>
 
-    <!-- CONTENEDOR DE TOASTS FLOTANTES -->
     <div id="toast-container"></div>
 
     <div class="navbar">
@@ -750,6 +730,19 @@
                     <input type="text" id="searchAdminInput" class="form-control" style="width:130px; padding:5px; font-size:0.85rem;" placeholder="🔍 Buscar..." oninput="renderAdminData()">
                     <label style="margin:0; font-size:0.85rem;">Mes:</label>
                     <input type="month" id="adminMonthFilter" class="form-control" style="width:145px; padding:5px;" onchange="renderAdminData()">
+                </div>
+            </div>
+
+            <!-- SECCIÓN NUEVA: ENVÍO DE PDFS A ADMINISTRACIÓN DE EMPRESA -->
+            <div class="card" style="border-left: 4px solid #2563eb; background: rgba(37, 99, 235, 0.03);">
+                <h3 style="margin-top:0; font-size: 1rem; color: #2563eb;">📧 Enviar PDF a Administración</h3>
+                <p style="font-size: 0.85rem; color: #666; margin-bottom: 12px;">Genera y envía el informe consolidado directamente a <strong>administracion@ascensoreselevia.com</strong>.</p>
+                
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <select id="emailTargetSelector" class="form-control" style="flex: 1; min-width: 180px; padding: 8px; font-size: 0.9rem;">
+                        <option value="todos">Todos los Técnicos (Global)</option>
+                    </select>
+                    <button class="btn btn-accent" style="width: auto; padding: 9px 16px; font-size: 0.9rem;" onclick="sendEmailToAdmin()">📤 Enviar a Empresa</button>
                 </div>
             </div>
             
@@ -887,6 +880,7 @@
         import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const TELEFONO_SECRETARIA = "34627956691"; 
+        const EMAIL_ADMINISTRACION = "administracion@ascensoreselevia.com";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAIwbYlPDQ8shXazC_8lENSR8K1C3fUDjM",
@@ -1289,6 +1283,19 @@
                 chartSelector.value = 'global';
             }
 
+            const emailSelector = document.getElementById('emailTargetSelector');
+            const currentSelectedEmailTarget = emailSelector.value;
+            let emailOptionsHtml = '<option value="todos">Todos los Técnicos (Global)</option>';
+            Object.keys(techMap).forEach(tech => {
+                emailOptionsHtml += `<option value="${tech}">${tech.toUpperCase()}</option>`;
+            });
+            emailSelector.innerHTML = emailOptionsHtml;
+            if (emailSelector.querySelector(`option[value="${currentSelectedEmailTarget}"]`)) {
+                emailSelector.value = currentSelectedEmailTarget;
+            } else {
+                emailSelector.value = 'todos';
+            }
+
             updateCarmenChart(globalTotals, techMap);
 
             const techKeys = Object.keys(techMap);
@@ -1442,6 +1449,34 @@
             showToast('Archivo CSV exportado con éxito');
         };
 
+        window.sendEmailToAdmin = function() {
+            const target = document.getElementById('emailTargetSelector').value;
+            const monthVal = document.getElementById('adminMonthFilter').value || 'Mes actual';
+            
+            if(target === 'todos') {
+                if(allAdminItems.length === 0) {
+                    showToast('No hay tickets para enviar en el sistema.', 'error');
+                    return;
+                }
+                generateConsolidatedPDF('GLOBAL_EMPRESA');
+            } else {
+                const techExists = allAdminItems.some(i => i.user.toLowerCase() === target.toLowerCase());
+                if(!techExists) {
+                    showToast(`No hay datos registrados para el técnico ${target}.`, 'error');
+                    return;
+                }
+                generateConsolidatedPDF(target);
+            }
+
+            const subject = encodeURIComponent(`Informe Consolidado de Gastos Elevia - ${target.toUpperCase()} (${monthVal})`);
+            const body = encodeURIComponent(`Hola equipo de administración,\n\nAdjunto a este correo el informe en PDF consolidado y verificado correspondiente a los gastos de ${target === 'todos' ? 'todos los técnicos (Global)' : 'el operario ' + target.toUpperCase()} para el periodo ${monthVal}.\n\nAtentamente,\nSecretaría - Elevia`);
+            
+            setTimeout(() => {
+                window.location.href = `mailto:${EMAIL_ADMINISTRACION}?subject=${subject}&body=${body}`;
+                showToast('PDF descargado y cliente de correo abierto hacia administración');
+            }, 500);
+        };
+
         window.deleteExpense = async function(id) {
             if(confirm('¿Eliminar permanentemente este gasto de la nube?')) {
                 const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
@@ -1538,8 +1573,9 @@
         };
 
         window.generateConsolidatedPDF = function(targetUser) {
+            const isGlobal = (targetUser === 'GLOBAL_EMPRESA');
             const userExpenses = allAdminItems.filter(i => {
-                if(i.user.toLowerCase() !== targetUser.toLowerCase()) return false;
+                if(!isGlobal && i.user.toLowerCase() !== targetUser.toLowerCase()) return false;
                 const filterValue = document.getElementById('adminMonthFilter') ? document.getElementById('adminMonthFilter').value : '';
                 if(!filterValue) return true;
                 if(!i.date) return true;
@@ -1551,7 +1587,7 @@
             });
 
             if(userExpenses.length === 0) {
-                showToast('No hay gastos cargados en el mes seleccionado para este operario.', 'error');
+                showToast('No hay gastos cargados en el mes seleccionado para el filtro indicado.', 'error');
                 return;
             }
 
@@ -1561,7 +1597,7 @@
             docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(18); docPdf.setTextColor(44, 62, 80);
             docPdf.text("INFORME DE LIQUIDACIÓN DE GASTOS", 15, 20);
             docPdf.setFontSize(10); docPdf.setFont("Helvetica", "normal"); docPdf.setTextColor(100, 116, 139);
-            docPdf.text(`Empresa: ELEVIA ELEVADORES S.L.  |  Operario: ${targetUser.toUpperCase()}`, 15, 26);
+            docPdf.text(`Empresa: ELEVIA ELEVADORES S.L.  |  Destinatario: ${isGlobal ? 'TODOS LOS TÉCNICOS (GLOBAL)' : targetUser.toUpperCase()}`, 15, 26);
             docPdf.line(15, 29, 195, 29);
 
             const categories = ['Media Dieta', 'Gasolina', 'Parking', 'Material'];
@@ -1579,7 +1615,7 @@
                     let catSubtotal = 0;
 
                     filtered.forEach(item => {
-                        docPdf.text(`• F. Ticket: ${item.date}  |  Destino: ${item.location}`, 20, currentY);
+                        docPdf.text(`• [${item.user.toUpperCase()}] F: ${item.date} | Destino: ${item.location}`, 20, currentY);
                         docPdf.setFont("Helvetica", "bold");
                         docPdf.text(`${item.amount.toFixed(2)} €`, 175, currentY, { align: 'right' });
                         docPdf.setFont("Helvetica", "normal");
@@ -1602,7 +1638,7 @@
             userExpenses.forEach((item, index) => {
                 docPdf.addPage();
                 docPdf.setFont("Helvetica", "bold"); docPdf.setFontSize(12); docPdf.setTextColor(44, 62, 80);
-                docPdf.text(`ANEXO FOTOGRÁFICO N° ${index + 1}: COMPROBANTE DE ${item.concept.toUpperCase()}`, 15, 20);
+                docPdf.text(`ANEXO N° ${index + 1}: ${item.user.toUpperCase()} - ${item.concept.toUpperCase()}`, 15, 20);
                 docPdf.setFontSize(10); docPdf.setFont("Helvetica", "normal");
                 docPdf.text(`Importe: ${item.amount.toFixed(2)} €  |  Fecha: ${item.date}  |  Destino: ${item.location}`, 15, 26);
                 
@@ -1616,8 +1652,9 @@
                 }
             });
 
-            docPdf.save(`Liquidacion_Gastos_${targetUser}_Elevia.pdf`);
-            showToast('PDF consolidado generado con éxito');
+            const filename = isGlobal ? `Liquidacion_Global_Elevia.pdf` : `Liquidacion_Gastos_${targetUser}_Elevia.pdf`;
+            docPdf.save(filename);
+            if(!isGlobal) showToast('PDF consolidado generado con éxito');
         };
         
         window.createNewUser = async function() {
@@ -1692,7 +1729,6 @@
             }
         };
 
-        // ASISTENTE IA MEJORADO CON BOTONES DE ACCIÓN INTERACTIVOS
         window.toggleAIChat = function() {
             const modal = document.getElementById('ai-chat-modal');
             if (modal.style.display === 'none' || modal.style.display === '') {
@@ -1786,11 +1822,11 @@
                 return { text: `📊 Desglose financiero actual (${isAdmin ? 'Secretaría' : 'Personal'}):\n• Importe Total: *${totalSum.toFixed(2)} €*\n- Media Dieta: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €` };
             }
 
-            if (q.includes('cómo subo') || q.includes('añadir ticket') || q.includes('nuevo gasto')) {
-                return { text: "📸 Para subir un nuevo ticket:\n1. Ve a tu vista de técnico.\n2. Haz clic en la zona de cámara para hacer una foto o seleccionarla.\n3. Rellena el concepto, importe y destino.\n4. Pulsa 'Guardar Gasto'." };
+            if (q.includes('correo') || q.includes('administración') || q.includes('enviar pdf')) {
+                return { text: "📧 Puedes enviar los informes en PDF a administración utilizando el nuevo selector en la parte superior del panel de secretaría. Te permite elegir entre un técnico específico o todos en global." };
             }
 
-            return { text: `🔍 He analizado tu pregunta. Puedo informarte sobre totales por categoría, tickets pendientes, guiarte en la app o auditar gastos.` };
+            return { text: `🔍 He analizado tu pregunta. Puedo informarte sobre totales por categoría, tickets pendientes o guiarte en el envío de correos a administración.` };
         }
     </script>
 </body>
