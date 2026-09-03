@@ -44,14 +44,24 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* NAVBAR CON GLASSMORPHISM */
         .navbar {
-            background-color: var(--card-bg);
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
             transition: background-color 0.3s;
+        }
+
+        body.dark-mode .navbar {
+            background-color: rgba(30, 30, 30, 0.85);
         }
 
         .navbar img {
@@ -98,19 +108,30 @@
             max-width: 650px;
             margin: 0 auto;
             box-sizing: border-box;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .view { display: none; }
         .view.active { display: block; }
 
+        /* TARJETAS CON HOVER DINÁMICO */
         .card {
             background: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 10px;
+            padding: 18px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: background-color 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s;
             border: 1px solid var(--border-color);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.07);
         }
 
         .grid-stats {
@@ -157,6 +178,11 @@
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
         }
 
         .btn {
@@ -174,7 +200,9 @@
             align-items: center;
             gap: 8px;
             box-sizing: border-box;
+            transition: opacity 0.2s;
         }
+        .btn:hover { opacity: 0.92; }
 
         .btn-accent { background-color: var(--accent); }
         .btn-danger { background-color: var(--danger); }
@@ -188,7 +216,9 @@
             background: var(--bg-color);
             cursor: pointer;
             margin-bottom: 15px;
+            transition: border-color 0.2s;
         }
+        .camera-zone:hover { border-color: var(--accent); }
 
         .preview-img {
             width: 100%;
@@ -215,6 +245,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            animation: fadeIn 0.3s ease;
         }
         .part-item:last-child { border-bottom: none; }
 
@@ -226,6 +257,7 @@
             padding: 4px;
         }
 
+        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -333,7 +365,57 @@
             border-color: var(--success);
         }
 
-        /* ESTILOS DEL ASISTENTE DE IA FLOTANTE */
+        /* TOAST NOTIFICATION FLOTANTE */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast-msg {
+            background: #222;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            pointer-events: auto;
+        }
+        .toast-msg.success { background: #27ae60; }
+        .toast-msg.error { background: #c0392b; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(10px); }
+        }
+
+        /* SKELETON LOADER */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            height: 16px;
+            margin-bottom: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ASISTENTE IA FLOTANTE */
         @keyframes aiPulse {
             0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
             70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
@@ -443,10 +525,7 @@
             opacity: 0.8;
             transition: opacity 0.2s;
         }
-
-        .ai-close-btn:hover {
-            opacity: 1;
-        }
+        .ai-close-btn:hover { opacity: 1; }
 
         .ai-modal-body {
             flex: 1;
@@ -501,7 +580,6 @@
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out both;
         }
-
         .ai-typing span:nth-child(1) { animation-delay: -0.32s; }
         .ai-typing span:nth-child(2) { animation-delay: -0.16s; }
 
@@ -528,10 +606,7 @@
             outline: none;
             font-size: 14px;
         }
-
-        .ai-modal-footer input:focus {
-            border-color: #2563eb;
-        }
+        .ai-modal-footer input:focus { border-color: #2563eb; }
 
         .ai-modal-footer button {
             padding: 9px 16px;
@@ -543,13 +618,27 @@
             font-weight: 500;
             transition: background 0.2s;
         }
+        .ai-modal-footer button:hover { background: #1d4ed8; }
 
-        .ai-modal-footer button:hover {
-            background: #1d4ed8;
+        .ai-action-btn {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 6px 10px;
+            background: var(--accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
         }
+        .ai-action-btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
+
+    <!-- CONTENEDOR DE TOASTS FLOTANTES -->
+    <div id="toast-container"></div>
 
     <div class="navbar">
         <img src="IMG_5467.jpeg" alt="Elevia Logo" onerror="this.style.display='none'; document.getElementById('altBrandText').style.display='block';">
@@ -622,7 +711,7 @@
                 <div class="grid-stats" style="grid-template-columns: 1fr 1fr; margin-bottom:0;">
                     <div class="form-group">
                         <label>Importe (€)</label>
-                        <input type="number" id="expenseAmount" class="form-control" step="0.01">
+                        <input type="number" id="expenseAmount" class="form-control" step="0.01" inputmode="decimal">
                     </div>
                     <div class="form-group">
                         <label>Fecha</label>
@@ -642,8 +731,14 @@
             </div>
 
             <div class="card">
-                <h3 style="margin-top:0;">Mis Gastos Recientes</h3>
-                <div id="tecnicoExpensesList"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+                    <h3 style="margin:0;">Mis Gastos Recientes</h3>
+                    <input type="text" id="searchTecnicoInput" class="form-control" style="width:160px; padding:5px; font-size:0.85rem;" placeholder="🔍 Buscar..." oninput="renderTecnicoList()">
+                </div>
+                <div id="tecnicoExpensesList">
+                    <div class="skeleton"></div>
+                    <div class="skeleton" style="width: 80%;"></div>
+                </div>
             </div>
         </div>
 
@@ -651,7 +746,8 @@
         <div id="viewAdmin" class="view">
             <div class="filter-bar">
                 <h3 style="margin:0;">Panel de Secretaría - Carmen</h3>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <input type="text" id="searchAdminInput" class="form-control" style="width:130px; padding:5px; font-size:0.85rem;" placeholder="🔍 Buscar..." oninput="renderAdminData()">
                     <label style="margin:0; font-size:0.85rem;">Mes:</label>
                     <input type="month" id="adminMonthFilter" class="form-control" style="width:145px; padding:5px;" onchange="renderAdminData()">
                 </div>
@@ -679,8 +775,14 @@
                 </div>
             </div>
 
-            <h3>Desglose de Gastos por Técnico</h3>
-            <div id="adminTechniciansList"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0;">Desglose de Gastos por Técnico</h3>
+                <button class="btn btn-accent" style="width:auto; padding:6px 12px; font-size:0.85rem;" onclick="exportAdminCSV()">📊 Exportar CSV</button>
+            </div>
+            <div id="adminTechniciansList">
+                <div class="skeleton"></div>
+                <div class="skeleton" style="width: 80%;"></div>
+            </div>
         </div>
         
         <!-- VISTA SUPER ADMIN -->
@@ -749,7 +851,7 @@
         </div>
     </div>
 
-    <!-- WIDGET FLOTANTE ASISTENTE IA MEJORADO -->
+    <!-- WIDGET FLOTANTE ASISTENTE IA -->
     <div id="ai-chat-fab" class="ai-fab" onclick="toggleAIChat()" title="Asistente IA Elevia">
         💬
     </div>
@@ -770,7 +872,7 @@
         </div>
         <div class="ai-modal-body" id="ai-chat-messages">
             <div class="ai-message bot">
-                ¡Hola! Soy Laura, tu analista virtual de Elevia. Tengo acceso completo en tiempo real a los tickets, filtros de mes, estados de validación y resúmenes. ¿Qué te gustaría consultar o qué operación necesitas realizar?
+                ¡Hola! Soy Laura, tu analista virtual de Elevia. Tengo acceso completo en tiempo real a los tickets, filtros y estados. ¿Qué te gustaría consultar o qué operación necesitas realizar?
             </div>
         </div>
         <div class="ai-modal-footer">
@@ -805,7 +907,6 @@
         let cachedItems = []; 
         let allAdminItems = []; 
         let lastWhatsAppText = ""; 
-        let isInitialLoad = true; 
         let editingExpenseId = null; 
         let isSuperAdmin = false;
         let isCreatingUserAction = false;
@@ -828,6 +929,15 @@
             }
             if(carmenChartInstance) renderAdminData();
         };
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (isSuperAdmin || isCreatingUserAction) return; 
@@ -864,7 +974,10 @@
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('btnLogin');
             
-            if(!userInput || !pass) return alert('Pon tus datos de acceso.');
+            if(!userInput || !pass) {
+                showToast('Introduce tus datos de acceso.', 'error');
+                return;
+            }
             
             if (userInput.toLowerCase() === 'user' && pass === 'admin1') {
                 isSuperAdmin = true;
@@ -873,6 +986,7 @@
                 document.getElementById('navUserInfo').style.display = 'flex';
                 document.getElementById('navUserTag').textContent = 'SUPER ADMIN';
                 switchView('viewSuperAdmin');
+                showToast('Sesión de Super Admin iniciada');
                 return;
             }
             
@@ -881,8 +995,9 @@
             try {
                 btn.disabled = true;
                 await signInWithEmailAndPassword(auth, userInput, pass);
+                showToast('¡Bienvenido de nuevo!');
             } catch (error) {
-                alert('Usuario o contraseña erróneos.');
+                showToast('Usuario o contraseña erróneos.', 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -893,6 +1008,7 @@
             signOut(auth); 
             switchView('viewLogin');
             document.getElementById('navUserInfo').style.display = 'none';
+            showToast('Sesión cerrada correctamente');
         };
         
         function switchView(viewId) {
@@ -934,6 +1050,7 @@
                         const today = new Date();
                         document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     }
+                    showToast('Ticket cargado y optimizado correctamente');
                 };
                 img.src = e.target.result;
             };
@@ -945,7 +1062,10 @@
             const amount = parseFloat(document.getElementById('expenseAmount').value);
             const date = document.getElementById('expenseDate').value.trim();
             const location = document.getElementById('expenseLocation').value.trim();
-            if(isNaN(amount) || !date || !location || !selectedTicketBase64) return alert('Por favor, rellena todos los datos e incluye foto.');
+            if(isNaN(amount) || !date || !location || !selectedTicketBase64) {
+                showToast('Por favor, rellena todos los datos e incluye foto.', 'error');
+                return;
+            }
 
             try {
                 if (editingExpenseId) {
@@ -953,7 +1073,7 @@
                     await upDoc(dDoc(db, "gastos", editingExpenseId), {
                         concept, amount, date, location, image: selectedTicketBase64
                     });
-                    alert('Gasto actualizado correctamente.');
+                    showToast('Gasto actualizado correctamente.');
                     cancelExpenseEdit();
                 } else {
                     await addDoc(colFS(db, "gastos"), {
@@ -972,9 +1092,11 @@
                     const today = new Date();
                     document.getElementById('expenseDate').value = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
                     
-                    alert('Gasto guardado. Pulsa el botón verde inferior si quieres notificarlo por WhatsApp a Carmen.');
+                    showToast('Gasto guardado con éxito.');
                 }
-            } catch (e) { alert('Error al guardar datos: ' + e.message); }
+            } catch (e) { 
+                showToast('Error al guardar datos: ' + e.message, 'error'); 
+            }
         };
 
         window.startExpenseEdit = function(id) {
@@ -1025,16 +1147,10 @@
         function listenTecnicoExpenses(username) {
             const q = qFS(colFS(db, "gastos"), where("user", "==", username));
             unsubscribeExpenses = snapFS(q, (snapshot) => {
-                let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                const container = document.getElementById('tecnicoExpensesList');
-                container.innerHTML = ''; 
-                cachedItems = [];
-
                 let localItems = [];
                 snapshot.forEach(docSnap => {
                     localItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
-
                 localItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                 
                 const now = new Date();
@@ -1044,52 +1160,65 @@
                     if(!item.date) return true;
                     const parts = item.date.split('/');
                     if(parts.length === 3) {
-                        const itemMonth = `${parts[2]}-${parts[1]}`;
-                        return itemMonth === currentMonth;
+                        return `${parts[2]}-${parts[1]}` === currentMonth;
                     }
                     return true;
                 });
-
-                let pendingCount = 0;
-                cachedItems.forEach(item => {
-                    totals[item.concept] += item.amount;
-                    if(!item.approved) pendingCount++;
-                    
-                    const div = document.createElement('div'); 
-                    div.className = 'part-item';
-                    div.innerHTML = `
-                        <div><strong>${item.concept}</strong> - <small>${item.location}</small><br><small style="color:#888;">${item.date}</small></div>
-                        <div style="text-align:right;">
-                            <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
-                            <span class="badge ${item.approved?'badge-approved':'badge-pending'}" style="cursor:pointer; margin-right:4px;" onclick="openPreviewModal('${item.id}')">Ver 🔍</span>
-                            <button class="btn-action-icon" onclick="startExpenseEdit('${item.id}')" title="Editar">✏️</button>
-                            <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);" title="Borrar">🗑️</button>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-
-                const banner = document.getElementById('tecnicoStatusBanner');
-                if(cachedItems.length > 0) {
-                    banner.style.display = 'flex';
-                    if(pendingCount > 0) {
-                        banner.className = 'status-banner';
-                        document.getElementById('tecnicoStatusText').textContent = `Tienes ${pendingCount} ticket${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''} de validación por Secretaría.`;
-                    } else {
-                        banner.className = 'status-banner all-approved';
-                        document.getElementById('tecnicoStatusText').textContent = `¡Todos tus gastos de este mes están validados por Secretaría! 🎉`;
-                    }
-                } else {
-                    banner.style.display = 'none';
-                    container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
-                }
-
-                document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
-                document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
-                document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
-                document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
+                renderTecnicoList();
             });
         }
+
+        window.renderTecnicoList = function() {
+            let totals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
+            const container = document.getElementById('tecnicoExpensesList');
+            container.innerHTML = ''; 
+
+            const filterText = document.getElementById('searchTecnicoInput').value.toLowerCase();
+            const filtered = cachedItems.filter(item => {
+                if(!filterText) return true;
+                return item.location.toLowerCase().includes(filterText) || item.concept.toLowerCase().includes(filterText);
+            });
+
+            let pendingCount = 0;
+            filtered.forEach(item => {
+                totals[item.concept] += item.amount;
+                if(!item.approved) pendingCount++;
+                
+                const div = document.createElement('div'); 
+                div.className = 'part-item';
+                div.innerHTML = `
+                    <div><strong>${item.concept}</strong> - <small>${item.location}</small><br><small style="color:#888;">${item.date}</small></div>
+                    <div style="text-align:right;">
+                        <span style="font-weight:bold; color:var(--danger);">${item.amount.toFixed(2)} €</span><br>
+                        <span class="badge ${item.approved?'badge-approved':'badge-pending'}" style="cursor:pointer; margin-right:4px;" onclick="openPreviewModal('${item.id}')">Ver 🔍</span>
+                        <button class="btn-action-icon" onclick="startExpenseEdit('${item.id}')" title="Editar">✏️</button>
+                        <button class="btn-action-icon" onclick="deleteExpense('${item.id}')" style="color:var(--danger);" title="Borrar">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            const banner = document.getElementById('tecnicoStatusBanner');
+            if(cachedItems.length > 0) {
+                banner.style.display = 'flex';
+                let actualPendings = cachedItems.filter(i => !i.approved).length;
+                if(actualPendings > 0) {
+                    banner.className = 'status-banner';
+                    document.getElementById('tecnicoStatusText').textContent = `Tienes ${actualPendings} ticket${actualPendings > 1 ? 's' : ''} pendiente${actualPendings > 1 ? 's' : ''} de validación por Secretaría.`;
+                } else {
+                    banner.className = 'status-banner all-approved';
+                    document.getElementById('tecnicoStatusText').textContent = `¡Todos tus gastos de este mes están validados por Secretaría! 🎉`;
+                }
+            } else {
+                banner.style.display = 'none';
+                container.innerHTML = `<p style="color:#888; text-align:center; font-size:0.85rem;">No tienes ningún gasto subido este mes.</p>`;
+            }
+
+            document.getElementById('sumDieta').textContent = `${totals['Media Dieta'].toFixed(2)} €`;
+            document.getElementById('sumGasolina').textContent = `${totals['Gasolina'].toFixed(2)} €`;
+            document.getElementById('sumParking').textContent = `${totals['Parking'].toFixed(2)} €`;
+            document.getElementById('sumMaterial').textContent = `${totals['Material'].toFixed(2)} €`;
+        };
 
         function listenAllExpenses() {
             const q = colFS(db, "gastos"); 
@@ -1099,7 +1228,6 @@
                     allAdminItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
                 allAdminItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-                isInitialLoad = false; 
                 renderAdminData();
             });
         }
@@ -1109,16 +1237,21 @@
             reviewDiv.innerHTML = ''; 
             
             const filterValue = document.getElementById('adminMonthFilter').value; 
+            const searchText = document.getElementById('searchAdminInput').value.toLowerCase();
             
-            cachedItems = allAdminItems.filter(item => {
+            let filteredByMonth = allAdminItems.filter(item => {
                 if(!filterValue) return true; 
                 if(!item.date) return true;
                 const parts = item.date.split('/'); 
                 if(parts.length === 3) {
-                    const itemMonth = `${parts[2]}-${parts[1]}`;
-                    return itemMonth === filterValue;
+                    return `${parts[2]}-${parts[1]}` === filterValue;
                 }
                 return true;
+            });
+            
+            cachedItems = filteredByMonth.filter(item => {
+                if(!searchText) return true;
+                return item.user.toLowerCase().includes(searchText) || item.location.toLowerCase().includes(searchText) || item.concept.toLowerCase().includes(searchText);
             });
             
             let globalTotals = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
@@ -1160,7 +1293,7 @@
 
             const techKeys = Object.keys(techMap);
             if(techKeys.length === 0) {
-                reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets registrados para el mes seleccionado.</p></div>`;
+                reviewDiv.innerHTML = `<div class="empty-dashboard-state"><h4>☁️ Base de Datos en Espera</h4><p>No hay tickets registrados para los filtros seleccionados.</p></div>`;
                 return;
             }
 
@@ -1289,12 +1422,33 @@
             });
         }
 
+        window.exportAdminCSV = function() {
+            if(cachedItems.length === 0) {
+                showToast('No hay datos para exportar en los filtros actuales.', 'error');
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,Operario,Concepto,Importe,Fecha,Destino,Estado\n";
+            cachedItems.forEach(item => {
+                const row = [item.user, item.concept, item.amount.toFixed(2), item.date, `"${item.location}"`, item.approved ? 'Validados' : 'Pendiente'];
+                csvContent += row.join(",") + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Gastos_Elevia_${document.getElementById('adminMonthFilter').value || 'general'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Archivo CSV exportado con éxito');
+        };
+
         window.deleteExpense = async function(id) {
             if(confirm('¿Eliminar permanentemente este gasto de la nube?')) {
                 const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 await delDoc(dDoc(db, "gastos", id));
                 closeModal();
                 if(editingExpenseId === id) cancelExpenseEdit();
+                showToast('Gasto eliminado correctamente');
             }
         };
 
@@ -1302,6 +1456,7 @@
             const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await upDoc(dDoc(db, "gastos", id), { approved: status });
             closeModal();
+            showToast(status ? 'Gasto marcado como validado' : 'Validación revocada');
         };
 
         window.openPreviewModal = function(id) {
@@ -1336,7 +1491,10 @@
 
         window.generateSingleExpensePDF = function(itemId) {
             const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
-            if(!item) return alert('No se ha encontrado el gasto seleccionado.');
+            if(!item) {
+                showToast('No se ha encontrado el gasto seleccionado.', 'error');
+                return;
+            }
 
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
@@ -1376,12 +1534,13 @@
 
             const cleanDate = item.date.replace(/\//g, '-');
             docPdf.save(`Gasto_${item.concept}_${item.user}_${cleanDate}.pdf`);
+            showToast('PDF individual descargado con éxito');
         };
 
         window.generateConsolidatedPDF = function(targetUser) {
             const userExpenses = allAdminItems.filter(i => {
                 if(i.user.toLowerCase() !== targetUser.toLowerCase()) return false;
-                const filterValue = document.getElementById('adminMonthFilter').value;
+                const filterValue = document.getElementById('adminMonthFilter') ? document.getElementById('adminMonthFilter').value : '';
                 if(!filterValue) return true;
                 if(!i.date) return true;
                 const parts = i.date.split('/');
@@ -1391,7 +1550,10 @@
                 return true;
             });
 
-            if(userExpenses.length === 0) return alert('No hay gastos cargados en el mes seleccionado para este operario.');
+            if(userExpenses.length === 0) {
+                showToast('No hay gastos cargados en el mes seleccionado para este operario.', 'error');
+                return;
+            }
 
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
@@ -1455,13 +1617,17 @@
             });
 
             docPdf.save(`Liquidacion_Gastos_${targetUser}_Elevia.pdf`);
+            showToast('PDF consolidado generado con éxito');
         };
         
         window.createNewUser = async function() {
             let user = document.getElementById('newUsername').value.trim();
             const pass = document.getElementById('newPassword').value;
             
-            if(!user || pass.length < 6) return alert("Introduce un usuario y una contraseña de mínimo 6 caracteres.");
+            if(!user || pass.length < 6) {
+                showToast("Introduce usuario y contraseña (mínimo 6 caracteres).", "error");
+                return;
+            }
             if(!user.includes('@')) user += DOMINIO_INTERNO;
             
             try {
@@ -1469,32 +1635,38 @@
                 await createUserWithEmailAndPassword(auth, user, pass);
                 await signOut(auth); 
                 isCreatingUserAction = false;
-                alert("✅ Usuario creado con éxito.");
+                showToast("✅ Usuario creado con éxito.");
                 document.getElementById('newUsername').value = '';
                 document.getElementById('newPassword').value = '';
             } catch (error) {
                 isCreatingUserAction = false;
-                alert("Error al crear usuario: " + error.message);
+                showToast("Error al crear usuario: " + error.message, "error");
             }
         };
 
         window.sendResetEmail = async function() {
             let user = document.getElementById('resetUsername').value.trim();
-            if(!user) return alert("Escribe el nombre de usuario.");
+            if(!user) {
+                showToast("Escribe el nombre de usuario.", "error");
+                return;
+            }
             if(!user.includes('@')) user += DOMINIO_INTERNO;
             
             try {
                 await sendPasswordResetEmail(auth, user);
-                alert("✅ Correo enviado para restablecer la contraseña.");
+                showToast("✅ Correo enviado para restablecer la contraseña.");
                 document.getElementById('resetUsername').value = '';
             } catch (error) {
-                alert("Error: " + error.message);
+                showToast("Error: " + error.message, "error");
             }
         };
 
         window.executeDataCleanup = async function() {
             const days = document.getElementById('retentionDays').value;
-            if(!days || isNaN(days)) return alert("Introduce un número de días válido.");
+            if(!days || isNaN(days)) {
+                showToast("Introduce un número de días válido.", "error");
+                return;
+            }
             
             if(!confirm(`⚠️ ¿Seguro que deseas eliminar los tickets con más de ${days} días?`)) return;
 
@@ -1514,13 +1686,13 @@
                         count++;
                     }
                 }
-                alert(`🧹 Limpieza completada. Se han borrado ${count} tickets antiguos.`);
+                showToast(`🧹 Limpieza completada. Se han borrado ${count} tickets.`);
             } catch(e) {
-                alert("Error en la limpieza: " + e.message);
+                showToast("Error en la limpieza: " + e.message, "error");
             }
         };
 
-        // LÓGICA DEL ASISTENTE IA ULTRA-AVANZADA (RAG CONTEXTUAL SOBRE LA WEBAPP)
+        // ASISTENTE IA MEJORADO CON BOTONES DE ACCIÓN INTERACTIVOS
         window.toggleAIChat = function() {
             const modal = document.getElementById('ai-chat-modal');
             if (modal.style.display === 'none' || modal.style.display === '') {
@@ -1557,16 +1729,23 @@
                 const indicator = document.getElementById('ai-typing-indicator');
                 if (indicator) indicator.remove();
 
-                const response = generateDeepAIResponse(query);
-                appendAIMessage(response, 'bot');
+                const responseObj = generateDeepAIResponse(query);
+                appendAIMessage(responseObj.text, 'bot', responseObj.action);
             }, 500);
         };
 
-        function appendAIMessage(text, sender) {
+        function appendAIMessage(text, sender, actionHtml = null) {
             const messagesContainer = document.getElementById('ai-chat-messages');
             const msgDiv = document.createElement('div');
             msgDiv.className = `ai-message ${sender}`;
             msgDiv.textContent = text;
+            
+            if (actionHtml && sender === 'bot') {
+                const btnContainer = document.createElement('div');
+                btnContainer.innerHTML = actionHtml;
+                msgDiv.appendChild(btnContainer);
+            }
+
             messagesContainer.appendChild(msgDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
@@ -1577,69 +1756,41 @@
             const currentMonthFilter = document.getElementById('adminMonthFilter') ? document.getElementById('adminMonthFilter').value : 'No activo';
             const dataset = isAdmin ? allAdminItems : cachedItems;
 
-            // 1. Consultas sobre el usuario actual y sesión
             if (q.includes('quién soy') || q.includes('mi rol') || q.includes('usuario')) {
-                if (!currentUserData) return "Actualmente no has iniciado sesión en la plataforma.";
-                return `👤 Estás autenticado como *${currentUserData.username.toUpperCase()}* con el rol de *${currentUserData.role.toUpperCase()}*.`;
+                if (!currentUserData) return { text: "Actualmente no has iniciado sesión en la plataforma." };
+                return { text: `👤 Estás autenticado como *${currentUserData.username.toUpperCase()}* con el rol de *${currentUserData.role.toUpperCase()}*.` };
             }
 
-            // 2. Consultas sobre el mes analizado / filtros activos
-            if (q.includes('mes') || q.includes('filtrar') || q.includes('periodo')) {
-                return `📅 El filtro de mes actual en el panel de Secretaría es: *${currentMonthFilter}*. Los datos mostrados en pantalla y gráficos corresponden a este periodo.`;
-            }
-
-            // 3. Consultas sobre estado de validación o pendientes
-            if (q.includes('pendiente') || q.includes('validar') || q.includes('aprobar') || q.includes('revisar')) {
+            if (q.includes('pendiente') || q.includes('validar') || q.includes('aprobar')) {
                 let pendings = dataset.filter(i => !i.approved);
                 if (pendings.length === 0) {
-                    return `✅ No hay ningún gasto pendiente de validación para el periodo actual (${currentMonthFilter}). ¡Todo está al día!`;
+                    return { text: `✅ No hay ningún gasto pendiente de validación para el periodo actual (${currentMonthFilter}). ¡Todo está al día!` };
                 }
                 let summary = `⚠️ Hay *${pendings.length}* ticket(s) pendiente(s) de validación:\n`;
                 pendings.forEach(p => {
                     summary += `• ${p.user.toUpperCase()} - ${p.concept}: ${p.amount.toFixed(2)} € (${p.location})\n`;
                 });
-                return summary.trim();
+                return { 
+                    text: summary.trim(), 
+                    action: `<button class="ai-action-btn" onclick="document.getElementById('searchAdminInput').value='pendiente'; renderAdminData(); toggleAIChat();">🔍 Filtrar pendientes en panel</button>` 
+                };
             }
 
-            // 4. Búsqueda por técnico específico
-            let techniciansList = [...new Set(allAdminItems.map(i => i.user.toLowerCase()))];
-            let foundTech = techniciansList.find(t => q.includes(t));
-            if (foundTech) {
-                let techItems = allAdminItems.filter(i => i.user.toLowerCase() === foundTech);
-                let techTotal = techItems.reduce((acc, curr) => acc + curr.amount, 0);
-                let pendingCount = techItems.filter(i => !i.approved).length;
-                return `👷‍♂️ Resumen para el técnico *${foundTech.toUpperCase()}*:\n• Total acumulado: *${techTotal.toFixed(2)} €*\n• Total de tickets: ${techItems.length}\n• Tickets pendientes de validar: ${pendingCount}`;
-            }
-
-            // 5. Consultas sobre importes y totales globales o por categorías
-            if (q.includes('total') || q.includes('cuánto') || q.includes('gastado') || q.includes('suma') || q.includes('gasto')) {
+            if (q.includes('total') || q.includes('cuánto') || q.includes('gastado') || q.includes('suma')) {
                 let totalSum = 0;
                 let cats = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
                 dataset.forEach(item => {
                     totalSum += item.amount;
                     if(cats[item.concept] !== undefined) cats[item.concept] += item.amount;
                 });
-                
-                return `📊 Desglose financiero actual (${isAdmin ? 'Vista Secretaría' : 'Vista Personal'}):\n• Importe Total: *${totalSum.toFixed(2)} €*\n- Media Dieta: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €`;
+                return { text: `📊 Desglose financiero actual (${isAdmin ? 'Secretaría' : 'Personal'}):\n• Importe Total: *${totalSum.toFixed(2)} €*\n- Media Dieta: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €` };
             }
 
-            // 6. Consultas sobre cómo hacer algo en la webapp (Guía interactiva)
-            if (q.includes('cómo subo') || q.includes('añadir ticket') || q.includes('nuevo gasto') || q.includes('foto')) {
-                return "📸 Para subir un nuevo ticket:\n1. Ve a tu vista de técnico.\n2. Haz clic en la zona de cámara para hacer una foto o seleccionarla de tu galería.\n3. Selecciona el concepto, introduce el importe, la fecha y el destino.\n4. Pulsa 'Guardar Gasto'. ¡Listo!";
-            }
-            if (q.includes('cómo descargo') || q.includes('pdf') || q.includes('informe')) {
-                return "📥 Para descargar un PDF:\n• Como técnico, puedes pulsar el botón 'Mi PDF Resumen' en la parte superior.\n• Como administrador (Carmen), puedes desplegar la tarjeta de cualquier técnico y pulsar 'PDF Mes' o abrir un ticket concreto para descargar su comprobante individual.";
-            }
-            if (q.includes('whatsapp') || q.includes('notificar')) {
-                return "💬 Al guardar un nuevo gasto como técnico, aparecerá un botón verde de WhatsApp para notificar directamente a Carmen con todos los detalles del ticket.";
+            if (q.includes('cómo subo') || q.includes('añadir ticket') || q.includes('nuevo gasto')) {
+                return { text: "📸 Para subir un nuevo ticket:\n1. Ve a tu vista de técnico.\n2. Haz clic en la zona de cámara para hacer una foto o seleccionarla.\n3. Rellena el concepto, importe y destino.\n4. Pulsa 'Guardar Gasto'." };
             }
 
-            // 7. Saludos o preguntas generales
-            if (q.includes('hola') || q.includes('ayuda') || q.includes('quién eres')) {
-                return "¡Hola! Soy Laura, tu analista financiera y asistente experta en la webapp Elevia. Puedo decirte subtotales por técnico, auditar tickets pendientes, explicarte cómo usar cualquier función de la aplicación o calcular sumas financieras en segundos. ¿Qué necesitas?";
-            }
-
-            return `🔍 He analizado tu pregunta ("${query}"). Recuerda que puedo informarte sobre los totales por categoría, los gastos de un técnico específico (ej: "gastos de [nombre]"), los tickets pendientes de validar o guiarte sobre el funcionamiento de la webapp.`;
+            return { text: `🔍 He analizado tu pregunta. Puedo informarte sobre totales por categoría, tickets pendientes, guiarte en la app o auditar gastos.` };
         }
     </script>
 </body>
