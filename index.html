@@ -224,7 +224,13 @@
 
         .btn-accent { background: linear-gradient(135deg, #18bc9c, #119c81); }
         .btn-danger { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        .btn-whatsapp { background: linear-gradient(135deg, #25d366, #1ebe5d); color: white; margin-top: 10px; }
+        .btn-whatsapp { background: linear-gradient(135deg, #25d366, #1ebe5d); color: white; margin-top: 10px; animation: pulseWhatsApp 2s infinite; }
+
+        @keyframes pulseWhatsApp {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
 
         .camera-zone {
             border: 2px dashed var(--input-border);
@@ -628,20 +634,6 @@
             transition: background 0.2s;
         }
         .ai-modal-footer button.ai-send-btn:hover { background: #1d4ed8; }
-
-        .ai-action-btn {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 6px 12px;
-            background: var(--accent);
-            color: white;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            border: none;
-            font-weight: 700;
-        }
-        .ai-action-btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -1104,7 +1096,15 @@
                     });
                     
                     lastWhatsAppText = `Hola Carmen, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en tu panel de Secretaría en Elevia.`;
-                    document.getElementById('btnWhatsAppNotify').style.display = 'flex';
+                    
+                    // Preguntar si desea enviar el aviso por WhatsApp a secretaría
+                    if (confirm("✅ ¡Gasto guardado con éxito!\n\n¿Deseas enviar un aviso predefinido a secretaría por WhatsApp para informarles de este nuevo gasto?")) {
+                        sendWhatsAppMessage();
+                    } else {
+                        // Si dice que no, dejamos visible el botón por si se arrepiente
+                        document.getElementById('btnWhatsAppNotify').style.display = 'flex';
+                        document.getElementById('btnWhatsAppNotify').scrollIntoView({ behavior: 'smooth' });
+                    }
 
                     document.getElementById('expenseAmount').value = '';
                     document.getElementById('expenseLocation').value = '';
@@ -1821,9 +1821,6 @@
             }
         };
 
-        // ========================================================
-        // AGENTE AUTÓNOMO IA CON CAPACIDAD DE EJECUCIÓN TOTAL
-        // ========================================================
         window.sendAIQuery = async function() {
             const input = document.getElementById('ai-chat-input');
             const query = input.value.trim();
@@ -1840,7 +1837,6 @@
             messagesContainer.appendChild(typingDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Procesamiento del Agente Autónomo
             try {
                 const agentResponse = await executeAutonomousAgentTask(query);
                 const indicator = document.getElementById('ai-typing-indicator');
@@ -1867,7 +1863,6 @@
             const isAdmin = currentUserData && currentUserData.role === 'admin';
             const dataset = isAdmin ? allAdminItems : cachedItems;
 
-            // ACCIÓN 1: VALIDAR / APROBAR TODOS LOS TICKETS PENDIENTES
             if (q.includes('aprobar todo') || q.includes('validar todo') || q.includes('aprobar todos') || q.includes('valida todo')) {
                 if (!isAdmin) return "⛔ No tienes permisos de Secretaría/Admin para validar tickets de forma masiva.";
                 
@@ -1882,11 +1877,9 @@
                 return `🤖 [Agente Autónomo]: He validado y aprobado con éxito ${count} tickets pendientes en la base de datos sin intervención humana. Los paneles se han actualizado.`;
             }
 
-            // ACCIÓN 2: APROBAR TICKETS DE UN TÉCNICO ESPECÍFICO
             if (q.includes('aprobar a') || q.includes('valida los de') || q.includes('aprobar los de')) {
                 if (!isAdmin) return "⛔ Solo Secretaría puede aprobar gastos de técnicos.";
                 
-                // Extraer el nombre del técnico (ej: "aprobar a juan")
                 const words = q.split(' ');
                 const targetTechIndex = words.indexOf('a') !== -1 ? words.indexOf('a') + 1 : words.indexOf('de') + 1;
                 const targetTech = words[targetTechIndex] ? words[targetTechIndex].toLowerCase() : '';
@@ -1904,7 +1897,6 @@
                 return `🤖 [Agente Autónomo]: He validado automáticamente ${count} tickets pendientes del técnico ${targetTech.toUpperCase()}.`;
             }
 
-            // ACCIÓN 3: ELIMINAR O LIMPIAR GASTOS RECHAZADOS / PRUEBAS
             if (q.includes('eliminar pruebas') || q.includes('borrar pruebas') || q.includes('limpiar pruebas')) {
                 if (!isAdmin) return "⛔ Operación restringida a administradores.";
                 
@@ -1919,17 +1911,14 @@
                 return `🤖 [Agente Autónomo]: He eliminado ${count} registros de prueba detectados en el sistema de manera autónoma.`;
             }
 
-            // ACCIÓN 4: CREAR UN GASTO RÁPIDO POR TEXTO / VOZ (Para técnicos)
             if (q.includes('anotar gasto') || q.includes('registrar gasto') || q.includes('apunta un gasto') || q.includes('añade un gasto')) {
                 if (!currentUserData) return "Debes iniciar sesión.";
                 
-                // Intentar extraer importe y concepto básico
                 let concept = "Media Dieta";
                 if (q.includes('gasolina')) concept = "Gasolina";
                 if (q.includes('parking')) concept = "Parking";
                 if (q.includes('material')) concept = "Material";
 
-                // Buscar número (importe)
                 const numbers = query.match(/\d+([.,]\d+)?/g);
                 const amount = numbers ? parseFloat(numbers[0].replace(',', '.')) : 15.00;
                 const today = new Date();
@@ -1941,7 +1930,7 @@
                     amount: amount,
                     date: dateStr,
                     location: "Registro Autónomo por Voz/Texto",
-                    image: selectedTicketBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", // Mock transparente si no hay foto
+                    image: selectedTicketBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
                     approved: false,
                     createdAt: Date.now()
                 });
@@ -1949,7 +1938,6 @@
                 return `🤖 [Agente Autónomo]: He registrado con éxito tu gasto de *${concept}* por valor de *${amount.toFixed(2)} €* para hoy. Ya figura en tus gastos recientes.`;
             }
 
-            // ACCIÓN 5: CONSULTAS FINANCIERAS Y ESTADO
             if (q.includes('estado') || q.includes('resumen') || q.includes('cuanto') || q.includes('total')) {
                 let totalSum = 0;
                 let pendingsCount = dataset.filter(i => !i.approved).length;
@@ -1958,7 +1946,6 @@
                 return `🤖 [Agente Autónomo]: Estado actual del sistema (${isAdmin ? 'Global Empresa' : 'Personal'}):\n• Importe Acumulado: *${totalSum.toFixed(2)} €*\n• Tickets Pendientes de Validación: *${pendingsCount}*\nTodo el sistema se encuentra operativo y sincronizado en tiempo real.`;
             }
 
-            // RESPUESTA GENERAL DEL AGENTE SI NO RECONOCE UNA ORDEN DIRECTA
             return `🤖 [Agente Autónomo]: He procesado tu orden. Como agente con privilegios, puedo ejecutar acciones como:\n1. *"Aprobar todos los tickets pendientes"*.\n2. *"Anotar un gasto de gasolina de 25€"$.\n3. *"Eliminar registros de prueba"$.\n¿Qué deseas que ejecute ahora mismo?`;
         }
     </script>
