@@ -449,7 +449,7 @@
             right: 25px;
             width: 66px;
             height: 66px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -469,9 +469,9 @@
             position: fixed;
             bottom: 105px;
             right: 25px;
-            width: 390px;
+            width: 410px;
             max-width: calc(100vw - 30px);
-            height: 520px;
+            height: 550px;
             background: var(--card-bg);
             backdrop-filter: blur(16px);
             border-radius: 16px;
@@ -484,7 +484,7 @@
             animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .ai-modal-header {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
             color: white;
             padding: 16px;
             display: flex;
@@ -541,7 +541,7 @@
         .ai-message {
             padding: 12px 16px;
             border-radius: 12px;
-            max-width: 85%;
+            max-width: 88%;
             font-size: 13.5px;
             line-height: 1.5;
             box-shadow: 0 2px 5px rgba(0,0,0,0.04);
@@ -871,41 +871,41 @@
         </div>
     </div>
 
-    <!-- WIDGET FLOTANTE ASISTENTE IA CON VOZ -->
-    <div id="ai-chat-fab" class="ai-fab" onclick="toggleAIChat()" title="Asistente IA Elevia">
-        💬
+    <!-- WIDGET FLOTANTE AGENTE AUTÓNOMO IA CON VOZ -->
+    <div id="ai-chat-fab" class="ai-fab" onclick="toggleAIChat()" title="Agente IA Autónomo Elevia">
+        🤖
     </div>
 
     <div id="ai-chat-modal" class="ai-modal" style="display: none;">
         <div class="ai-modal-header">
             <div class="ai-header-title">
                 <div class="ai-avatar-container">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Laura - Asistente IA">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="Laura - Agente Autónomo">
                     <div class="ai-status-dot"></div>
                 </div>
                 <div>
-                    <h3>Laura · Asistente IA</h3>
-                    <span style="font-size: 11px; opacity: 0.85;">Analista Financiera Elevia</span>
+                    <h3>Laura · Agente Autónomo</h3>
+                    <span style="font-size: 11px; opacity: 0.9;">Control y Ejecución Total Elevia</span>
                 </div>
             </div>
             <button onclick="toggleAIChat()" class="ai-close-btn">&times;</button>
         </div>
         <div class="ai-modal-body" id="ai-chat-messages">
             <div class="ai-message bot">
-                ¡Hola! Soy Laura, tu analista virtual. Tengo acceso completo en tiempo real a los tickets y filtros. ¿Qué te gustaría consultar o qué operación necesitas realizar? (Puedes usar el micrófono 🎙️ para hablarme).
+                ¡Hola! Soy Laura, tu Agente Autónomo con control total del sistema. Puedo aprobar tickets automáticamente, registrar nuevos gastos, buscar por técnico o ejecutar operaciones complejas sin intervención humana. ¿Qué orden deseas ejecutar? (Puedes usar el micrófono 🎙️).
             </div>
         </div>
         <div class="ai-modal-footer">
             <button type="button" id="ai-mic-btn" class="ai-mic-btn" onclick="toggleSpeechRecognition()" title="Hablar con Laura">🎙️</button>
-            <input type="text" id="ai-chat-input" placeholder="Pregúntame o háblame..." onkeypress="handleAIPress(event)">
-            <button class="ai-send-btn" onclick="sendAIQuery()">Enviar</button>
+            <input type="text" id="ai-chat-input" placeholder="Escribe tu orden o instrucción..." onkeypress="handleAIPress(event)">
+            <button class="ai-send-btn" onclick="sendAIQuery()">Ejecutar</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore as initFS, collection as colFS, query as qFS, onSnapshot as snapFS, where, addDoc, getDocs, doc as dDoc, updateDoc as upDoc, deleteDoc as delDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const TELEFONO_SECRETARIA = "34627956691"; 
         const EMAIL_ADMINISTRACION = "administracion@ascensoreselevia.com";
@@ -1093,7 +1093,6 @@
 
             try {
                 if (editingExpenseId) {
-                    const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                     await upDoc(dDoc(db, "gastos", editingExpenseId), {
                         concept, amount, date, location, image: selectedTicketBase64
                     });
@@ -1508,7 +1507,6 @@
 
         window.deleteExpense = async function(id) {
             if(confirm('¿Eliminar permanentemente este gasto de la nube?')) {
-                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 await delDoc(dDoc(db, "gastos", id));
                 closeModal();
                 if(editingExpenseId === id) cancelExpenseEdit();
@@ -1517,7 +1515,6 @@
         };
 
         window.toggleApprove = async function(id, status) {
-            const { doc: dDoc, updateDoc: upDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await upDoc(dDoc(db, "gastos", id), { approved: status });
             closeModal();
             showToast(status ? 'Gasto marcado como validado' : 'Validación revocada');
@@ -1741,8 +1738,6 @@
                 const limitMs = parseInt(days) * 24 * 60 * 60 * 1000;
                 const snapshot = await getDocs(colFS(db, "gastos"));
                 let count = 0;
-
-                const { doc: dDoc, deleteDoc: delDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 
                 for(const docSnap of snapshot.docs) {
                     const data = docSnap.data();
@@ -1795,7 +1790,7 @@
             recognition.onstart = function() {
                 isListening = true;
                 micBtn.classList.add('listening');
-                showToast("🎙️ Escuchando... Habla ahora.");
+                showToast("🎙️ Escuchando orden... Habla ahora.");
             };
 
             recognition.onresult = function(event) {
@@ -1826,7 +1821,10 @@
             }
         };
 
-        window.sendAIQuery = function() {
+        // ========================================================
+        // AGENTE AUTÓNOMO IA CON CAPACIDAD DE EJECUCIÓN TOTAL
+        // ========================================================
+        window.sendAIQuery = async function() {
             const input = document.getElementById('ai-chat-input');
             const query = input.value.trim();
             if (!query) return;
@@ -1842,72 +1840,126 @@
             messagesContainer.appendChild(typingDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            setTimeout(() => {
+            // Procesamiento del Agente Autónomo
+            try {
+                const agentResponse = await executeAutonomousAgentTask(query);
                 const indicator = document.getElementById('ai-typing-indicator');
                 if (indicator) indicator.remove();
-
-                const responseObj = generateDeepAIResponse(query);
-                appendAIMessage(responseObj.text, 'bot', responseObj.action);
-            }, 500);
+                appendAIMessage(agentResponse, 'bot');
+            } catch (error) {
+                const indicator = document.getElementById('ai-typing-indicator');
+                if (indicator) indicator.remove();
+                appendAIMessage("⚠️ Error al ejecutar la orden autónoma: " + error.message, 'bot');
+            }
         };
 
-        function appendAIMessage(text, sender, actionHtml = null) {
+        function appendAIMessage(text, sender) {
             const messagesContainer = document.getElementById('ai-chat-messages');
             const msgDiv = document.createElement('div');
             msgDiv.className = `ai-message ${sender}`;
             msgDiv.textContent = text;
-            
-            if (actionHtml && sender === 'bot') {
-                const btnContainer = document.createElement('div');
-                btnContainer.innerHTML = actionHtml;
-                msgDiv.appendChild(btnContainer);
-            }
-
             messagesContainer.appendChild(msgDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function generateDeepAIResponse(query) {
+        async function executeAutonomousAgentTask(query) {
             const q = query.toLowerCase();
             const isAdmin = currentUserData && currentUserData.role === 'admin';
-            const currentMonthFilter = document.getElementById('adminMonthFilter') ? document.getElementById('adminMonthFilter').value : 'No activo';
             const dataset = isAdmin ? allAdminItems : cachedItems;
 
-            if (q.includes('quién soy') || q.includes('mi rol') || q.includes('usuario')) {
-                if (!currentUserData) return { text: "Actualmente no has iniciado sesión en la plataforma." };
-                return { text: `👤 Estás autenticado como *${currentUserData.username.toUpperCase()}* con el rol de *${currentUserData.role.toUpperCase()}*.` };
-            }
+            // ACCIÓN 1: VALIDAR / APROBAR TODOS LOS TICKETS PENDIENTES
+            if (q.includes('aprobar todo') || q.includes('validar todo') || q.includes('aprobar todos') || q.includes('valida todo')) {
+                if (!isAdmin) return "⛔ No tienes permisos de Secretaría/Admin para validar tickets de forma masiva.";
+                
+                const pendings = allAdminItems.filter(i => !i.approved);
+                if (pendings.length === 0) return "✅ No hay ningún ticket pendiente en este momento para aprobar.";
 
-            if (q.includes('pendiente') || q.includes('validar') || q.includes('aprobar')) {
-                let pendings = dataset.filter(i => !i.approved);
-                if (pendings.length === 0) {
-                    return { text: `✅ No hay ningún gasto pendiente de validación para el periodo actual (${currentMonthFilter}). ¡Todo está al día!` };
+                let count = 0;
+                for (const item of pendings) {
+                    await upDoc(dDoc(db, "gastos", item.id), { approved: true });
+                    count++;
                 }
-                let summary = `⚠️ Hay *${pendings.length}* ticket(s) pendiente(s) de validación:\n`;
-                pendings.forEach(p => {
-                    summary += `• ${p.user.toUpperCase()} - ${p.concept}: ${p.amount.toFixed(2)} € (${p.location})\n`;
-                });
-                return { 
-                    text: summary.trim(), 
-                    action: `<button class="ai-action-btn" onclick="document.getElementById('searchAdminInput').value='pendiente'; renderAdminData(); toggleAIChat();">🔍 Filtrar pendientes en panel</button>` 
-                };
+                return `🤖 [Agente Autónomo]: He validado y aprobado con éxito ${count} tickets pendientes en la base de datos sin intervención humana. Los paneles se han actualizado.`;
             }
 
-            if (q.includes('total') || q.includes('cuánto') || q.includes('gastado') || q.includes('suma')) {
+            // ACCIÓN 2: APROBAR TICKETS DE UN TÉCNICO ESPECÍFICO
+            if (q.includes('aprobar a') || q.includes('valida los de') || q.includes('aprobar los de')) {
+                if (!isAdmin) return "⛔ Solo Secretaría puede aprobar gastos de técnicos.";
+                
+                // Extraer el nombre del técnico (ej: "aprobar a juan")
+                const words = q.split(' ');
+                const targetTechIndex = words.indexOf('a') !== -1 ? words.indexOf('a') + 1 : words.indexOf('de') + 1;
+                const targetTech = words[targetTechIndex] ? words[targetTechIndex].toLowerCase() : '';
+
+                if (!targetTech) return "Indícame el nombre del técnico cuyos tickets deseas aprobar.";
+
+                const techPendings = allAdminItems.filter(i => i.user.toLowerCase().includes(targetTech) && !i.approved);
+                if (techPendings.length === 0) return `No hay tickets pendientes para el técnico ${targetTech.toUpperCase()}.`;
+
+                let count = 0;
+                for (const item of techPendings) {
+                    await upDoc(dDoc(db, "gastos", item.id), { approved: true });
+                    count++;
+                }
+                return `🤖 [Agente Autónomo]: He validado automáticamente ${count} tickets pendientes del técnico ${targetTech.toUpperCase()}.`;
+            }
+
+            // ACCIÓN 3: ELIMINAR O LIMPIAR GASTOS RECHAZADOS / PRUEBAS
+            if (q.includes('eliminar pruebas') || q.includes('borrar pruebas') || q.includes('limpiar pruebas')) {
+                if (!isAdmin) return "⛔ Operación restringida a administradores.";
+                
+                const testItems = allAdminItems.filter(i => i.location.toLowerCase().includes('prueba') || i.amount === 0);
+                if (testItems.length === 0) return "No se han encontrado tickets de prueba.";
+
+                let count = 0;
+                for (const item of testItems) {
+                    await delDoc(dDoc(db, "gastos", item.id));
+                    count++;
+                }
+                return `🤖 [Agente Autónomo]: He eliminado ${count} registros de prueba detectados en el sistema de manera autónoma.`;
+            }
+
+            // ACCIÓN 4: CREAR UN GASTO RÁPIDO POR TEXTO / VOZ (Para técnicos)
+            if (q.includes('anotar gasto') || q.includes('registrar gasto') || q.includes('apunta un gasto') || q.includes('añade un gasto')) {
+                if (!currentUserData) return "Debes iniciar sesión.";
+                
+                // Intentar extraer importe y concepto básico
+                let concept = "Media Dieta";
+                if (q.includes('gasolina')) concept = "Gasolina";
+                if (q.includes('parking')) concept = "Parking";
+                if (q.includes('material')) concept = "Material";
+
+                // Buscar número (importe)
+                const numbers = query.match(/\d+([.,]\d+)?/g);
+                const amount = numbers ? parseFloat(numbers[0].replace(',', '.')) : 15.00;
+                const today = new Date();
+                const dateStr = `${today.getDate().toString().padStart(2,'0')}/${(today.getMonth()+1).toString().padStart(2,'0')}/${today.getFullYear()}`;
+
+                await addDoc(colFS(db, "gastos"), {
+                    user: currentUserData.username,
+                    concept: concept,
+                    amount: amount,
+                    date: dateStr,
+                    location: "Registro Autónomo por Voz/Texto",
+                    image: selectedTicketBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", // Mock transparente si no hay foto
+                    approved: false,
+                    createdAt: Date.now()
+                });
+
+                return `🤖 [Agente Autónomo]: He registrado con éxito tu gasto de *${concept}* por valor de *${amount.toFixed(2)} €* para hoy. Ya figura en tus gastos recientes.`;
+            }
+
+            // ACCIÓN 5: CONSULTAS FINANCIERAS Y ESTADO
+            if (q.includes('estado') || q.includes('resumen') || q.includes('cuanto') || q.includes('total')) {
                 let totalSum = 0;
-                let cats = { 'Media Dieta': 0, 'Gasolina': 0, 'Parking': 0, 'Material': 0 };
-                dataset.forEach(item => {
-                    totalSum += item.amount;
-                    if(cats[item.concept] !== undefined) cats[item.concept] += item.amount;
-                });
-                return { text: `📊 Desglose financiero actual (${isAdmin ? 'Secretaría' : 'Personal'}):\n• Importe Total: *${totalSum.toFixed(2)} €*\n- Media Dieta: ${cats['Media Dieta'].toFixed(2)} €\n- Gasolina: ${cats['Gasolina'].toFixed(2)} €\n- Parking: ${cats['Parking'].toFixed(2)} €\n- Material: ${cats['Material'].toFixed(2)} €` };
+                let pendingsCount = dataset.filter(i => !i.approved).length;
+                dataset.forEach(item => totalSum += item.amount);
+
+                return `🤖 [Agente Autónomo]: Estado actual del sistema (${isAdmin ? 'Global Empresa' : 'Personal'}):\n• Importe Acumulado: *${totalSum.toFixed(2)} €*\n• Tickets Pendientes de Validación: *${pendingsCount}*\nTodo el sistema se encuentra operativo y sincronizado en tiempo real.`;
             }
 
-            if (q.includes('correo') || q.includes('administración') || q.includes('enviar pdf')) {
-                return { text: "📧 Puedes enviar los informes en PDF a administración utilizando el selector en la parte superior del panel de secretaría. Te permite elegir entre un técnico específico o todos en global." };
-            }
-
-            return { text: `🔍 He procesado tu solicitud de voz/texto. Puedo informarte sobre totales por categoría, tickets pendientes o guiarte en el envío de correos a administración.` };
+            // RESPUESTA GENERAL DEL AGENTE SI NO RECONOCE UNA ORDEN DIRECTA
+            return `🤖 [Agente Autónomo]: He procesado tu orden. Como agente con privilegios, puedo ejecutar acciones como:\n1. *"Aprobar todos los tickets pendientes"*.\n2. *"Anotar un gasto de gasolina de 25€"$.\n3. *"Eliminar registros de prueba"$.\n¿Qué deseas que ejecute ahora mismo?`;
         }
     </script>
 </body>
