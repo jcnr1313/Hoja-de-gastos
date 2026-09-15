@@ -787,9 +787,12 @@
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap: wrap; gap: 8px;">
                 <h3 style="margin:0; font-size: 1.1rem;">Desglose de Gastos por Técnico</h3>
-                <button class="btn btn-accent" style="width:auto; padding:7px 14px; font-size:0.85rem;" onclick="exportAdminCSV()">📊 Exportar CSV</button>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" style="background:var(--success); width:auto; padding:7px 14px; font-size:0.85rem;" onclick="approveSelectedTickets()">✅ Validar Seleccionados</button>
+                    <button class="btn btn-accent" style="width:auto; padding:7px 14px; font-size:0.85rem;" onclick="exportAdminCSV()">📊 Exportar CSV</button>
+                </div>
             </div>
             <div id="adminTechniciansList">
                 <div class="skeleton"></div>
@@ -927,6 +930,7 @@
         let carmenChartInstance = null;
         let recognition = null;
         let isListening = false;
+        let activeModalItemId = null;
         const DOMINIO_INTERNO = "@elevia.com";
 
         if(localStorage.getItem('theme') === 'dark') {
@@ -1097,11 +1101,9 @@
                     
                     lastWhatsAppText = `Hola Carmen, he subido un nuevo gasto de *${concept}* por un importe de *${amount.toFixed(2)} €*.\n📍 Destino: ${location}\n📅 Fecha: ${date}.\nYa puedes revisarlo en tu panel de Secretaría en Elevia.`;
                     
-                    // Preguntar si desea enviar el aviso por WhatsApp a secretaría
                     if (confirm("✅ ¡Gasto guardado con éxito!\n\n¿Deseas enviar un aviso predefinido a secretaría por WhatsApp para informarles de este nuevo gasto?")) {
                         sendWhatsAppMessage();
                     } else {
-                        // Si dice que no, dejamos visible el botón por si se arrepiente
                         document.getElementById('btnWhatsAppNotify').style.display = 'flex';
                         document.getElementById('btnWhatsAppNotify').scrollIntoView({ behavior: 'smooth' });
                     }
@@ -1334,6 +1336,7 @@
             techKeys.forEach(tech => {
                 const data = techMap[tech];
                 const accordionId = `tech_acc_${tech}`;
+                const selectAllId = `select_all_${tech}`;
                 
                 const techCard = document.createElement('div');
                 techCard.className = 'technician-accordion';
@@ -1342,10 +1345,13 @@
                 data.items.forEach(item => {
                     itemsHtml += `
                         <div class="part-item">
-                            <div>
-                                <strong>${item.concept}</strong> — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span><br>
-                                <small style="color:#555;">📍 <strong>Destino:</strong> ${item.location}</small><br>
-                                <small style="color:#888;">📅 <strong>Fecha:</strong> ${item.date} | <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Validado' : 'Pendiente'}</span></small>
+                            <div style="display:flex; align-items:flex-start; gap:10px;">
+                                <input type="checkbox" class="admin-ticket-checkbox" data-id="${item.id}" style="margin-top:4px; transform: scale(1.2); cursor:pointer;" onchange="updateMasterCheckboxState('${tech}')">
+                                <div>
+                                    <strong>${item.concept}</strong> — <span style="color:var(--danger); font-weight:bold;">${item.amount.toFixed(2)} €</span><br>
+                                    <small style="color:#555;">📍 <strong>Destino:</strong> ${item.location}</small><br>
+                                    <small style="color:#888;">📅 <strong>Fecha:</strong> ${item.date} | <span class="badge ${item.approved ? 'badge-approved' : 'badge-pending'}">${item.approved ? 'Validado' : 'Pendiente'}</span></small>
+                                </div>
                             </div>
                             <div style="display:flex; align-items:center; gap:5px;">
                                 <button class="btn btn-accent" style="padding:5px 8px; font-size:0.8rem;" onclick="openPreviewModal('${item.id}')">🔍 Ver PDF</button>
@@ -1372,11 +1378,14 @@
                         </div>
                     </div>
                     <div class="technician-body" id="${accordionId}">
-                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; margin-bottom:10px; font-size:0.85rem;">
-                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Dietas: <strong>${data.totals['Media Dieta'].toFixed(2)} €</strong></div>
-                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Gasolina: <strong>${data.totals['Gasolina'].toFixed(2)} €</strong></div>
-                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Parking: <strong>${data.totals['Parking'].toFixed(2)} €</strong></div>
-                            <div style="background:var(--card-bg); padding:6px; border-radius:4px; border:1px solid var(--border-color);">Material: <strong>${data.totals['Material'].toFixed(2)} €</strong></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border-color);">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem; margin:0;">
+                                <input type="checkbox" id="${selectAllId}" style="transform: scale(1.1); cursor:pointer;" onclick="toggleSelectAllTech('${tech}', this)"> Seleccionar todos de ${tech.toUpperCase()}
+                            </label>
+                            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px; font-size:0.75rem;">
+                                <span style="background:var(--card-bg); padding:4px 6px; border-radius:4px; border:1px solid var(--border-color);">Dietas: <strong>${data.totals['Media Dieta'].toFixed(2)} €</strong></span>
+                                <span style="background:var(--card-bg); padding:4px 6px; border-radius:4px; border:1px solid var(--border-color);">Gasolina: <strong>${data.totals['Gasolina'].toFixed(2)} €</strong></span>
+                            </div>
                         </div>
                         ${itemsHtml}
                     </div>
@@ -1394,6 +1403,46 @@
             } else {
                 body.classList.add('open');
                 icon.textContent = '▲';
+            }
+        };
+
+        window.toggleSelectAllTech = function(tech, masterCheckbox) {
+            const accordionBody = document.getElementById(`tech_acc_${tech}`);
+            if (!accordionBody) return;
+            const checkboxes = accordionBody.querySelectorAll('.admin-ticket-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+            });
+        };
+
+        window.updateMasterCheckboxState = function(tech) {
+            const accordionBody = document.getElementById(`tech_acc_${tech}`);
+            const masterCheckbox = document.getElementById(`select_all_${tech}`);
+            if (!accordionBody || !masterCheckbox) return;
+            const checkboxes = accordionBody.querySelectorAll('.admin-ticket-checkbox');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            masterCheckbox.checked = allChecked;
+        };
+
+        window.approveSelectedTickets = async function() {
+            const checkboxes = document.querySelectorAll('.admin-ticket-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showToast('Selecciona al menos un ticket para validar.', 'error');
+                return;
+            }
+
+            if (!confirm(`¿Deseas validar los ${checkboxes.length} tickets seleccionados?`)) return;
+
+            try {
+                let count = 0;
+                for (const cb of checkboxes) {
+                    const id = cb.getAttribute('data-id');
+                    await upDoc(dDoc(db, "gastos", id), { approved: true });
+                    count++;
+                }
+                showToast(`✅ Se han validado correctamente ${count} tickets.`);
+            } catch (e) {
+                showToast('Error al validar tickets: ' + e.message, 'error');
             }
         };
 
@@ -1524,6 +1573,7 @@
             const item = cachedItems.find(i => i.id === id) || allAdminItems.find(i => i.id === id);
             if(!item) return;
 
+            activeModalItemId = id;
             document.getElementById('mockUser').textContent = item.user.toUpperCase();
             document.getElementById('mockDate').textContent = item.date;
             document.getElementById('mockConcept').textContent = item.concept;
@@ -1535,20 +1585,43 @@
             btns.innerHTML = '';
 
             const downloadSinglePDF = `<button class="btn btn-accent" onclick="generateSingleExpensePDF('${item.id}')">📥 Descargar PDF Individual de este Gasto</button>`;
+            const downloadImageBtn = `<button class="btn" style="background:#3b82f6;" onclick="downloadOriginalTicketImage('${item.id}')">📥 Descargar solo imagen (para gestor)</button>`;
             const closeBtn = `<button class="btn" style="background:#64748b;" onclick="closeModal()">Cerrar Previsualización</button>`;
 
             if(currentUserData && currentUserData.role === 'admin') {
                 const approveBtn = item.approved 
                     ? `<button class="btn btn-danger" onclick="toggleApprove('${item.id}', false)">Revocar Validación</button>`
                     : `<button class="btn" style="background:var(--success);" onclick="toggleApprove('${item.id}', true)">Marcar como Validado</button>`;
-                btns.innerHTML = approveBtn + downloadSinglePDF + closeBtn;
+                btns.innerHTML = approveBtn + downloadSinglePDF + downloadImageBtn + closeBtn;
             } else {
-                btns.innerHTML = downloadSinglePDF + closeBtn;
+                btns.innerHTML = downloadSinglePDF + downloadImageBtn + closeBtn;
             }
             document.getElementById('previewModal').style.display = 'flex';
         };
 
-        window.closeModal = function() { document.getElementById('previewModal').style.display = 'none'; };
+        window.closeModal = function() { 
+            document.getElementById('previewModal').style.display = 'none'; 
+            activeModalItemId = null;
+        };
+
+        window.downloadOriginalTicketImage = function(itemId) {
+            const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
+            if (!item || !item.image) {
+                showToast('No se ha encontrado la imagen del ticket.', 'error');
+                return;
+            }
+
+            const cleanDate = (item.date || 'fecha').replace(/\//g, '-');
+            const filename = `Ticket_${item.concept}_${item.user}_${cleanDate}.jpg`;
+
+            const link = document.createElement('a');
+            link.href = item.image;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Imagen del ticket descargada con éxito');
+        };
 
         window.generateSingleExpensePDF = function(itemId) {
             const item = cachedItems.find(i => i.id === itemId) || allAdminItems.find(i => i.id === itemId);
@@ -1766,7 +1839,6 @@
             }
         };
 
-        // MÓDULO DE RECONOCIMIENTO DE VOZ NATIVO
         window.toggleSpeechRecognition = function() {
             const micBtn = document.getElementById('ai-mic-btn');
             const input = document.getElementById('ai-chat-input');
